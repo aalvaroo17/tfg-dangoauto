@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Java
+target/
+.idea/
+*.iml
+*.jar
+*.exe
+*.zip
+*.rar
+*.log
+*.tmp
+*.bak
+*.class
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.vscode/
+*.swp
+*.swo
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Google Cloud
+.gcloudignore
+*.key.json
+
+# Environment variables
+.env
+.env.local
+
+# Data files (no subir datos de producción)
+backend/data/citas.json
+
+# Archivos de compilación y distribución
+java-app/target/
+dist/
+*.jar
+*.exe
+*.zip
+*.class

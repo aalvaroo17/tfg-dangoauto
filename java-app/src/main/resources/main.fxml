@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="apptfg1.controller.MainController">
+   <top>
+      <VBox>
+         <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-background-color: linear-gradient(to right, #2c3e50, #3498db); -fx-padding: 15;">
+            <children>
+               <Label text="🚗 DangoAuto" textFill="WHITE">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Label>
+               <Region HBox.hgrow="ALWAYS" />
+               <Label fx:id="userLabel" text="Usuario" textFill="WHITE" />
+               <Button fx:id="logoutButton" text="Cerrar Sesión" onAction="#handleLogout" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 5;" />
+            </children>
+         </HBox>
+         <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+               <Tab text="Catálogo de Coches">
+                  <content>
+                     <VBox spacing="15" style="-fx-padding: 20;">
+                        <children>
+                           <HBox spacing="10" alignment="CENTER_LEFT">
+                              <children>
+                                 <TextField fx:id="searchField" promptText="Buscar coche..." HBox.hgrow="ALWAYS" />
+                                 <Button text="Buscar" onAction="#handleSearch" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5;" />
+                                 <Button text="Limpiar" onAction="#handleClearFilters" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-background-radius: 5;" />
+                              </children>
+                           </HBox>
+                           
+                           <HBox spacing="10">
+                              <children>
+                                 <Label text="Marca:" />
+                                 <ComboBox fx:id="brandComboBox" promptText="Todas" prefWidth="150" />
+                                 <Label text="Combustible:" />
+                                 <ComboBox fx:id="fuelComboBox" promptText="Todos" prefWidth="150" />
+                                 <Label text="Precio min:" />
+                                 <TextField fx:id="minPriceField" promptText="0" prefWidth="100" />
+                                 <Label text="Precio max:" />
+                                 <TextField fx:id="maxPriceField" promptText="50000" prefWidth="100" />
+                                 <Label text="Km máx:" />
+                                 <TextField fx:id="maxKmField" promptText="100000" prefWidth="100" />
+                                 <Label text="Año mín:" />
+                                 <TextField fx:id="minYearField" promptText="2020" prefWidth="100" />
+                              </children>
+                           </HBox>
+                           
+                           <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                              <content>
+                                 <FlowPane fx:id="carsFlowPane" hgap="15" vgap="15" />
+                              </content>
+                           </ScrollPane>
+                        </children>
+                     </VBox>
+                  </content>
+               </Tab>
+               <Tab text="Mis Citas">
+                  <content>
+                     <VBox spacing="15" alignment="CENTER" style="-fx-padding: 20;">
+                        <children>
+                           <Label fx:id="appointmentsTitle" text="Mis Citas" textFill="#2c3e50">
+                              <font>
+                                 <Font name="System Bold" size="24.0" />
+                              </font>
+                           </Label>
+                           
+                           <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                              <content>
+                                 <VBox fx:id="appointmentsVBox" spacing="10" />
+                              </content>
+                           </ScrollPane>
+                           
+                           <Label fx:id="noAppointmentsLabel" text="Para registrar una cita rellena el formulario de la página" textFill="#7f8c8d" wrapText="true" visible="false">
+                              <font>
+                                 <Font size="14.0" />
+                              </font>
+                           </Label>
+                           
+                           <Hyperlink fx:id="webLink" text="Ir a la página web" visible="false" onAction="#openWebPage">
+                              <font>
+                                 <Font size="14.0" />
+                              </font>
+                           </Hyperlink>
+                        </children>
+                     </VBox>
+                  </content>
+               </Tab>
+            </tabs>
+         </TabPane>
+      </VBox>
+   </top>
+</BorderPane>
+

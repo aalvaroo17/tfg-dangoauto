@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DangoAuto - Tu Concesionario de Confianza</title>
+    <script src="/static/config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        .logo:hover {
+            color: #3498db;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Main content */
+        main {
+            margin-top: 80px;
+        }
+
+        section {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            background: 
+                linear-gradient(rgba(44, 62, 80, 0.85), rgba(52, 152, 219, 0.75)),
+                url('/static/logo.png');
+            color: white;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('/static/logo.png') center/30% no-repeat;
+            opacity: 0.2;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .hero h1,
+        .hero p,
+        .hero .cta-button {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+        }
+
+        /* Section styling */
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+        }
+
+        /* About section */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .about-features {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .feature {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: translateX(10px);
+        }
+
+        /* Catalog section */
+        .cars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .car-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .car-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .car-image {
+            height: 200px;                  
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;               
+            border-radius: 10px;            
+            background: #bdc3c7;            
+        }
+
+        .car-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;             
+        }
+
+        .car-info {
+            padding: 1.5rem;
+        }
+
+        .car-info h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .car-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+
+        .info-button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .info-button:hover {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            transform: translateY(-2px);
+        }
+
+        /* Contact section */
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+            padding: 2rem;
+            border-radius: 15px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .contact-item i {
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: #3498db;
+        }
+
+        .appointment-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .submit-button {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            transform: translateY(-2px);
+        }
+
+        .map-container {
+            margin-top: 2rem;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Download section */
+        .download-content {
+            text-align: center;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 4rem 2rem;
+            border-radius: 20px;
+        }
+
+        .download-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 1.5rem 3rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+            margin-top: 2rem;
+        }
+
+        .download-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.6);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .about-content, .contact-content {
+                grid-template-columns: 1fr;
+            }
+
+            .cars-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#inicio" class="logo">
+                <img src="/static/logo.png" alt="DangoAuto Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span>DangoAuto</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#sobre-nosotros">Sobre Nosotros</a></li>
+                <li><a href="#catalogo">Catálogo</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+                <li><a href="#descargar">Descargar</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="inicio" class="hero">
+            <h1>Bienvenido a DangoAuto</h1>
+            <p>Tu concesionario de confianza en el corazón de Madrid</p>
+            <a href="#catalogo" class="cta-button">Ver Catálogo</a>
+        </section>
+
+        <section id="sobre-nosotros">
+            <h2 class="section-title">Sobre Nosotros</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>En DangoAuto, llevamos más de 15 años siendo el concesionario de referencia en Madrid. Nos especializamos en ofrecer vehículos de alta calidad con la mejor atención al cliente.</p>
+                    <p>Nuestro compromiso es ayudarte a encontrar el coche perfecto que se adapte a tus necesidades y presupuesto, con un servicio personalizado y profesional.</p>
+                </div>
+                <div class="about-features">
+                    <div class="feature">
+                        <h3>🏆 Calidad Garantizada</h3>
+                        <p>Todos nuestros vehículos pasan rigurosos controles de calidad</p>
+                    </div>
+                    <div class="feature">
+                        <h3>💰 Mejores Precios</h3>
+                        <p>Ofrecemos los precios más competitivos del mercado</p>
+                    </div>
+                    <div class="feature">
+                        <h3>🔧 Servicio Post-venta</h3>
+                        <p>Mantenimiento y reparaciones con técnicos especializados</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="catalogo">
+            <h2 class="section-title">Nuestro Catálogo</h2>
+            <div class="cars-grid" id="carsGrid">
+                <!-- Los coches se generarán con JavaScript -->
+            </div>
+        </section>
+
+        <section id="contacto">
+            <h2 class="section-title">Contacto y Citas</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>Información de Contacto</h3>
+                    <div class="contact-item">
+                        <i>📍</i>
+                        <span>Puerta del Sol, Madrid, España</span>
+                    </div>
+                    <div class="contact-item">
+                        <i>📞</i>
+                        <span>+34 915 123 456</span>
+                    </div>
+                    <div class="contact-item">
+                        <i>✉️</i>
+                        <span>info@dangoauto.es</span>
+                    </div>
+                    <div class="contact-item">
+                        <i>🕒</i>
+                        <span>Lun-Vie: 9:00-19:00, Sáb: 10:00-14:00</span>
+                    </div>
+                </div>
+                <div class="appointment-form">
+                    <h3>Solicitar Cita</h3>
+                    <form id="appointmentForm">
+                        <div class="form-group">
+                            <label for="name">Nombre Completo:</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Teléfono:</label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Fecha Preferida:</label>
+                            <input type="date" id="date" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="time">Hora Preferida:</label>
+                            <select id="time" name="time" required>
+                                <option value="">Seleccionar hora</option>
+                                <option value="09:00">09:00</option>
+                                <option value="10:00">10:00</option>
+                                <option value="11:00">11:00</option>
+                                <option value="12:00">12:00</option>
+                                <option value="13:00">13:00</option>
+                                <option value="14:00">14:00</option>
+                                <option value="15:00">15:00</option>
+                                <option value="16:00">16:00</option>
+                                <option value="17:00">17:00</option>
+                                <option value="18:00">18:00</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="submit-button">Solicitar Cita</button>
+                    </form>
+                    <div id="appointmentMessage" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;"></div>
+                </div>
+            </div>
+            <div class="map-container">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.8271146934344!2d-3.7037902!3d40.4167754!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd42287f7f11c1df%3A0x6ab8d87e77e7e8f8!2sPuerta%20del%20Sol%2C%20Madrid%2C%20Spain!5e0!3m2!1sen!2sus!4v1627123456789!5m2!1sen!2sus" 
+                    width="100%" 
+                    height="300" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
+            </div>
+        </section>
+
+        <section id="descargar">
+            <div class="download-content">
+                <h2>Aplicaciones DangoAuto</h2>
+                <p>Elige cómo quieres usar DangoAuto:</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                    <a href="/app" class="download-button" style="background: linear-gradient(45deg, #9b59b6, #8e44ad);">🌐 Usar Aplicación Web</a>
+                    <a href="/download/java-app" class="download-button" id="downloadLink">💻 Descargar App de Escritorio</a>
+                </div>
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.9;">
+                    <strong>Aplicación Web:</strong> Funciona directamente en tu navegador, sin descargas.<br>
+                    <strong>App de Escritorio:</strong> Requiere Java 11+. Descarga y ejecuta DangoAuto.bat.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para información del coche -->
+    <div id="carModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="carDetails"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 DangoAuto. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+    // --- Datos de los coches ---
+    // Datos de los coches con imágenes
+ const cars = [
+        {
+            id: 1,
+            name: "BMW Serie 3",
+            price: "35,900€",
+            year: 2022,
+            km: 15000,
+            fuel: "Diésel",
+            power: "190 CV",
+            transmission: "Automático",
+            description: "Sedán premium con excelente rendimiento y tecnología avanzada. Ideal para ejecutivos que buscan confort y elegancia.",
+            features: ["GPS", "Asientos de cuero", "Climatizador automático", "Sistema de sonido premium"],
+            image: "/static/Imagenes/ImagenBMW.jpg"
+        },
+        {
+            id: 2,
+            name: "Audi A4",
+            price: "32,500€",
+            year: 2021,
+            km: 22000,
+            fuel: "Gasolina",
+            power: "150 CV",
+            transmission: "Manual",
+            description: "Elegante berlina con diseño sofisticado y motor eficiente. Perfecto equilibrio entre deportividad y confort.",
+            features: ["Faros LED", "Tapicería mixta", "Control de crucero", "Conexión Bluetooth"],
+            image: "/static/Imagenes/ImagenAudi.webp"
+        },
+        {
+            id: 3,
+            name: "Mercedes Clase C",
+            price: "38,750€",
+            year: 2023,
+            km: 8500,
+            fuel: "Híbrido",
+            power: "204 CV",
+            transmission: "Automático",
+            description: "Lujo y tecnología híbrida en perfecta armonía. Bajo consumo y máximo confort para el conductor exigente.",
+            features: ["Pantalla táctil 10.25\"", "Asientos eléctricos", "Sistema de navegación", "Cámara trasera"],
+            image: "/static/Imagenes/ImagenMercedes.webp"
+        },
+        {
+            id: 4,
+            name: "Volkswagen Golf",
+            price: "24,300€",
+            year: 2022,
+            km: 18000,
+            fuel: "Gasolina",
+            power: "130 CV",
+            transmission: "Manual",
+            description: "El compacto más versátil del mercado. Ideal para ciudad y carretera con excelente relación calidad-precio.",
+            features: ["Car Play", "Sensores de aparcamiento", "Volante multifunción", "Ordenador de viaje"],
+            image: "/static/Imagenes/ImagenGolf.jpeg"
+        },
+        {
+            id: 5,
+            name: "Toyota RAV4",
+            price: "31,200€",
+            year: 2021,
+            km: 28000,
+            fuel: "Híbrido",
+            power: "218 CV",
+            transmission: "Automático",
+            description: "SUV híbrido con tracción integral. Perfecto para familias aventureras que buscan eficiencia y espacio.",
+            features: ["Tracción 4x4", "Cámara 360°", "Techo solar", "Sistema de seguridad Toyota Safety Sense"],
+            image: "/static/Imagenes/ImagenToyota.webp"
+        },
+        {
+            id: 6,
+            name: "Ford Focus",
+            price: "21,800€",
+            year: 2022,
+            km: 12000,
+            fuel: "Gasolina",
+            power: "125 CV",
+            transmission: "Manual",
+            description: "Compacto dinámico con tecnología intuitiva. Diseño moderno y conducción ágil para el día a día.",
+            features: ["SYNC 3", "Control por voz", "Asistente de mantenimiento de carril", "Arranque sin llave"],
+            image: "/static/Imagenes/ImagenFord.jpg"
+        }
+    ];
+
+    // Generar catálogo de coches con imagen
+    function generateCarCatalog() {
+        const carsGrid = document.getElementById('carsGrid');
+        carsGrid.innerHTML = '';
+
+        cars.forEach(car => {
+            const carCard = document.createElement('div');
+            carCard.className = 'car-card';
+            carCard.innerHTML = `
+                <div class="car-image">
+                    <img src="${car.image}" alt="${car.name}" style="width:100%; height:auto; border-radius:10px;">
+                </div>
+                <div class="car-info">
+                    <h3>${car.name}</h3>
+                    <div class="car-price">${car.price}</div>
+                    <p>${car.year} • ${car.km.toLocaleString()} km • ${car.fuel}</p>
+                    <button class="info-button" onclick="showCarDetails(${car.id})">Más Información</button>
+                </div>
+            `;
+            carsGrid.appendChild(carCard);
+        });
+    }
+
+    // --- Modal detalles de coche ---
+    function showCarDetails(carId) {
+        const car = cars.find(c => c.id === carId);
+        if (!car) return;
+
+        const carDetails = document.getElementById('carDetails');
+        carDetails.innerHTML = `
+            <h2>${car.name}</h2>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin:2rem 0;">
+                <div>
+                    <h3>Especificaciones:</h3>
+                    <p><strong>Año:</strong> ${car.year}</p>
+                    <p><strong>Kilómetros:</strong> ${car.km.toLocaleString()}</p>
+                    <p><strong>Combustible:</strong> ${car.fuel}</p>
+                    <p><strong>Potencia:</strong> ${car.power}</p>
+                    <p><strong>Transmisión:</strong> ${car.transmission}</p>
+                    <p><strong>Precio:</strong> <span style="color:#e74c3c;font-weight:bold;">${car.price}</span></p>
+                </div>
+                <div>
+                    <h3>Equipamiento:</h3>
+                    <ul style="list-style:none;padding:0;">${car.features.map(f => `<li style="margin:0.5rem 0;">✓ ${f}</li>`).join('')}</ul>
+                </div>
+            </div>
+            <div>
+                <h3>Descripción:</h3>
+                <p style="line-height:1.6;margin:1rem 0;">${car.description}</p>
+            </div>
+            <div style="text-align:center;margin-top:2rem;">
+                <button onclick="contactAboutCar('${car.name}')" style="background:linear-gradient(45deg,#27ae60,#2ecc71);color:white;border:none;padding:1rem 2rem;border-radius:25px;cursor:pointer;font-weight:bold;margin-right:1rem;">Contactar por este coche</button>
+                <button onclick="closeModal()" style="background:#95a5a6;color:white;border:none;padding:1rem 2rem;border-radius:25px;cursor:pointer;font-weight:bold;">Cerrar</button>
+            </div>
+        `;
+        document.getElementById('carModal').style.display = 'block';
+    }
+
+    function contactAboutCar(carName) {
+        closeModal();
+        document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => { document.getElementById('name').focus(); }, 500);
+    }
+
+    function closeModal() {
+        document.getElementById('carModal').style.display = 'none';
+    }
+
+    // --- Sistema de citas ---
+    let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+
+    class AppointmentBot {
+        constructor() {
+            this.responses = {
+                confirmAppointment: [
+                    "¡Perfecto! He registrado tu cita. Te contactaremos para confirmar.",
+                    "¡Excelente! Tu solicitud ha sido procesada. Pronto recibirás confirmación.",
+                    "¡Cita registrada exitosamente! Nuestro equipo se pondrá en contacto contigo."
+                ]
+            };
+        }
+
+        validateAppointment(appointment) {
+            const issues = [];
+            if (!appointment.name || appointment.name.length < 2) issues.push("El nombre debe tener al menos 2 caracteres");
+            if (!appointment.phone || !/^(\+34|0034|34)?[6789]\d{8}$/.test(appointment.phone.replace(/\s/g,''))) issues.push("Teléfono español válido requerido");
+            
+            const selectedDate = new Date(appointment.date);
+            const today = new Date(); today.setHours(0,0,0,0);
+            const maxDate = new Date(); maxDate.setMonth(maxDate.getMonth()+3);
+            if (selectedDate < today || selectedDate > maxDate) issues.push("Fecha debe estar entre hoy y próximos 3 meses");
+
+            if (appointments.find(a => a.date===appointment.date && a.time===appointment.time))
+                issues.push("Ya existe una cita para esta fecha y hora");
+
+            return issues;
+        }
+
+        processAppointment(appointment) {
+            const issues = this.validateAppointment(appointment);
+            if (issues.length>0) return { success:false, message:"Se encontraron los siguientes problemas:\n"+issues.join("\n"), issues };
+            appointment.id = `DANGO${Date.now()}`;
+            appointment.status = 'confirmado';
+            appointment.createdAt = new Date().toISOString();
+            return { success:true, message:this.responses.confirmAppointment[Math.floor(Math.random()*this.responses.confirmAppointment.length)], appointment, reference: appointment.id };
+        }
+    }
+
+    const appointmentBot = new AppointmentBot();
+
+    async function handleAppointmentSubmission(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const appointment = {
+        name: formData.get('name').trim(),
+        phone: formData.get('phone').trim(),
+        date: formData.get('date'),
+        time: formData.get('time')
+    };
+
+    try {
+        const apiUrl = window.API_BASE_URL || '';
+        const response = await fetch(`${apiUrl}/api/appointments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(appointment)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage(`¡Cita creada con éxito! Referencia: ${result.reference}`, 'success');
+            e.target.reset();
+        } else {
+            showMessage(`Error: ${result.message}`, 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showMessage('Error al conectar con el servidor. Inténtalo de nuevo.', 'error');
+    }
+}
+
+    function showMessage(message, type) {
+        const messageDiv = document.getElementById('appointmentMessage');
+        messageDiv.textContent = message;
+        messageDiv.style.display='block';
+        messageDiv.style.backgroundColor = type==='success'?'#d4edda':'#f8d7da';
+        messageDiv.style.color = type==='success'?'#155724':'#721c24';
+        messageDiv.style.border = `1px solid ${type==='success'?'#c3e6cb':'#f5c6cb'}`;
+        setTimeout(()=>{ messageDiv.style.display='none'; },5000);
+    }
+
+    // --- Navegación, scroll y animaciones ---
+    function smoothScroll() {
+        document.querySelectorAll('a[href^="#"]').forEach(link=>{
+            link.addEventListener('click',e=>{
+                e.preventDefault();
+                const target=document.querySelector(link.getAttribute('href'));
+                if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+            });
+        });
+    }
+
+    function handleScroll() {
+        const header=document.querySelector('header');
+        if(window.scrollY>100){ header.style.background='rgba(44,62,80,0.95)'; header.style.backdropFilter='blur(10px)'; }
+        else { header.style.background='linear-gradient(135deg,#2c3e50,#3498db)'; header.style.backdropFilter='none'; }
+    }
+
+    function animateOnScroll() {
+        const observer=new IntersectionObserver(entries=>{
+            entries.forEach(entry=>{
+                if(entry.isIntersecting){ entry.target.style.opacity='1'; entry.target.style.transform='translateY(0)'; }
+            });
+        },{threshold:0.1});
+        document.querySelectorAll('.car-card,.feature,.contact-item').forEach(el=>{
+            el.style.opacity='0'; el.style.transform='translateY(20px)'; el.style.transition='all 0.6s ease';
+            observer.observe(el);
+        });
+    }
+
+
+    // --- Inicialización ---
+    document.addEventListener('DOMContentLoaded', function() {
+        generateCarCatalog();
+        document.getElementById('appointmentForm').addEventListener('submit', handleAppointmentSubmission);
+
+        document.querySelector('.close')?.addEventListener('click', closeModal);
+        window.addEventListener('click', e=>{ if(e.target===document.getElementById('carModal')) closeModal(); });
+
+        smoothScroll(); handleScroll(); animateOnScroll();
+        window.addEventListener('scroll', handleScroll);
+
+        const dateInput=document.getElementById('date');
+        const today=new Date().toISOString().split('T')[0];
+        dateInput.min=today;
+
+        // Asegurar que el enlace de descarga funcione correctamente
+        const downloadLink = document.getElementById('downloadLink');
+        if (downloadLink) {
+            downloadLink.addEventListener('click', function(e) {
+                // Si estamos en file://, mostrar mensaje
+                if (window.location.protocol === 'file:') {
+                    e.preventDefault();
+                    alert('Por favor, accede a esta página a través del servidor Flask:\n\nhttp://localhost:5000\n\nEjecuta "python backend/app.py" para iniciar el servidor.');
+                    return false;
+                }
+            });
+        }
+
+        setTimeout(simulateRealTimeUpdates, 2000);
+    });
+
+    // --- Simulación de disponibilidad en tiempo real ---
+    function simulateRealTimeUpdates() {
+        setInterval(()=>{
+            const timeSelect=document.getElementById('time');
+            const currentTime=new Date();
+            const currentHour=currentTime.getHours();
+            Array.from(timeSelect.options).forEach(option=>{
+                if(option.value){
+                    const optionHour=parseInt(option.value.split(':')[0]);
+                    const todaySelected = document.getElementById('date').value === new Date().toISOString().split('T')[0];
+                    if(todaySelected && optionHour<=currentHour){ option.disabled=true; option.textContent=`${option.value} - No disponible`; }
+                    else { option.disabled=false; option.textContent=option.value; }
+                }
+            });
+        },60000);
+    }
+</script>
+</body>
+</html>
