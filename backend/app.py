@@ -6,6 +6,49 @@ from datetime import datetime, timedelta
 import re
 import uuid
 
+# Firebase Admin SDK
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# Inicializar Firebase Admin (solo una vez)
+if not firebase_admin._apps:
+    # Opción 1: Si GOOGLE_APPLICATION_CREDENTIALS es un archivo JSON
+    cred_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+    if cred_path and os.path.exists(cred_path):
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
+        print("✓ Firebase Admin inicializado desde archivo")
+    # Opción 2: Si GOOGLE_APPLICATION_CREDENTIALS es el contenido JSON (Render.com)
+    elif cred_path and cred_path.strip().startswith('{'):
+        try:
+            import json
+            cred_dict = json.loads(cred_path)
+            cred = credentials.Certificate(cred_dict)
+            firebase_admin.initialize_app(cred)
+            print("✓ Firebase Admin inicializado desde variable de entorno")
+        except Exception as e:
+            print(f"⚠️ Error parseando credenciales desde variable: {e}")
+            try:
+                firebase_admin.initialize_app()
+            except Exception as e2:
+                print(f"⚠️ No se pudo inicializar Firebase Admin: {e2}")
+    # Opción 3: Application Default Credentials (Google Cloud)
+    else:
+        try:
+            firebase_admin.initialize_app()
+            print("✓ Firebase Admin inicializado con Application Default Credentials")
+        except Exception as e:
+            print(f"⚠️ Advertencia: No se pudo inicializar Firebase Admin: {e}")
+            print("   El backend funcionará en modo local (JSON) hasta configurar credenciales")
+
+# Obtener cliente de Firestore
+try:
+    db = firestore.client()
+    print("✓ Firestore inicializado correctamente")
+except Exception as e:
+    print(f"⚠️ Advertencia: No se pudo conectar a Firestore: {e}")
+    db = None
+
 # Configurar Flask - desactivar carpeta estática por defecto
 app = Flask(__name__, static_folder=None)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Desactivar caché para desarrollo
@@ -39,14 +82,25 @@ def after_request(response):
     return response
 
 class DangoAutoBot:
-    def __init__(self, appointments_file='data/citas.json'):
-        # Obtener la ruta absoluta del archivo de datos
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.appointments_file = os.path.join(base_dir, appointments_file)
-        self.appointments = self.load_appointments()
+    def __init__(self, appointments_file='data/citas.json', use_firestore=True):
+        """
+        Inicializar bot de DangoAuto
+        use_firestore: Si True, usa Firestore. Si False, usa archivos JSON (fallback)
+        """
+        self.use_firestore = use_firestore and db is not None
+        self.db = db if self.use_firestore else None
+        
+        # Fallback a JSON si Firestore no está disponible
+        if not self.use_firestore:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            self.appointments_file = os.path.join(base_dir, appointments_file)
+            self.appointments = self.load_appointments()
+            print("⚠️ Usando almacenamiento local (JSON) - Firestore no disponible")
+        else:
+            print("✓ Usando Firestore para almacenamiento")
 
     def load_appointments(self):
-        """Cargar citas desde el archivo JSON"""
+        """Cargar citas desde JSON (solo para fallback)"""
         # Asegurar que el directorio existe
         data_dir = os.path.dirname(self.appointments_file)
         if data_dir and not os.path.exists(data_dir):
@@ -75,7 +129,7 @@ class DangoAutoBot:
             return []
 
     def save_appointments(self):
-        """Guardar citas en citas.json"""
+        """Guardar citas en JSON (solo para fallback)"""
         # Asegurar que el directorio existe
         data_dir = os.path.dirname(self.appointments_file)
         if data_dir and not os.path.exists(data_dir):
@@ -118,12 +172,27 @@ class DangoAutoBot:
             return False, "Formato de fecha u hora inválido"
 
     def is_slot_available(self, date_str, time_str):
-        for apt in self.appointments:
-            if apt['date'] == date_str and apt['time'] == time_str and apt['status'] != 'cancelada':
+        """Verificar si un horario está disponible"""
+        if self.use_firestore:
+            try:
+                appointments_ref = self.db.collection('appointments')
+                query = appointments_ref.where('date', '==', date_str)\
+                                       .where('time', '==', time_str)\
+                                       .where('status', '!=', 'cancelada')\
+                                       .limit(1)
+                docs = query.stream()
+                return len(list(docs)) == 0
+            except Exception as e:
+                print(f"Error verificando disponibilidad en Firestore: {e}")
                 return False
-        return True
+        else:
+            for apt in self.appointments:
+                if apt['date'] == date_str and apt['time'] == time_str and apt['status'] != 'cancelada':
+                    return False
+            return True
 
-    def create_appointment(self, name, phone, date_str, time_str):
+    def create_appointment(self, name, phone, date_str, time_str, user_id=None):
+        """Crear una nueva cita"""
         if not self.validate_name(name):
             return {"success": False, "message": "Nombre inválido", "error_code": "INVALID_NAME"}
         if not self.validate_phone(phone):
@@ -136,6 +205,7 @@ class DangoAutoBot:
 
         appointment_id = str(uuid.uuid4())[:8].upper()
         reference = f"DANGO{appointment_id}"
+        now = datetime.now()
         appointment = {
             "id": appointment_id,
             "reference": reference,
@@ -145,36 +215,113 @@ class DangoAutoBot:
             "time": time_str,
             "datetime_full": f"{date_str} {time_str}",
             "status": "confirmada",
-            "created_at": datetime.now().isoformat(),
-            "notes": ""
+            "created_at": now.isoformat(),
+            "created_at_timestamp": firestore.SERVER_TIMESTAMP if self.use_firestore else now,
+            "notes": "",
+            "user_id": user_id  # Para asociar con usuario si está logueado
         }
-        self.appointments.append(appointment)
-        if self.save_appointments():
-            return {"success": True, "message": "¡Cita creada exitosamente!", "appointment": appointment, "reference": reference}
+        
+        if self.use_firestore:
+            try:
+                appointments_ref = self.db.collection('appointments')
+                # Convertir timestamp para Firestore
+                appointment_data = appointment.copy()
+                appointment_data['created_at_timestamp'] = firestore.SERVER_TIMESTAMP
+                doc_ref = appointments_ref.document()
+                doc_ref.set(appointment_data)
+                appointment['firestore_id'] = doc_ref.id
+                return {"success": True, "message": "¡Cita creada exitosamente!", "appointment": appointment, "reference": reference}
+            except Exception as e:
+                print(f"Error guardando cita en Firestore: {e}")
+                return {"success": False, "message": "Error al guardar la cita", "error_code": "SAVE_ERROR"}
         else:
-            return {"success": False, "message": "Error al guardar la cita", "error_code": "SAVE_ERROR"}
+            self.appointments.append(appointment)
+            if self.save_appointments():
+                return {"success": True, "message": "¡Cita creada exitosamente!", "appointment": appointment, "reference": reference}
+            else:
+                return {"success": False, "message": "Error al guardar la cita", "error_code": "SAVE_ERROR"}
 
-    def get_appointments(self, date_filter=None):
-        if date_filter:
-            return [apt for apt in self.appointments if apt['date'] == date_filter]
-        return self.appointments
+    def get_appointments(self, date_filter=None, user_id=None):
+        """Obtener citas, opcionalmente filtradas por fecha o usuario"""
+        if self.use_firestore:
+            try:
+                appointments_ref = self.db.collection('appointments')
+                query = appointments_ref
+                
+                if date_filter:
+                    query = query.where('date', '==', date_filter)
+                if user_id:
+                    query = query.where('user_id', '==', user_id)
+                
+                docs = query.stream()
+                appointments = []
+                for doc in docs:
+                    apt = doc.to_dict()
+                    apt['firestore_id'] = doc.id
+                    appointments.append(apt)
+                return appointments
+            except Exception as e:
+                print(f"Error obteniendo citas de Firestore: {e}")
+                return []
+        else:
+            appointments = self.appointments
+            if date_filter:
+                appointments = [apt for apt in appointments if apt['date'] == date_filter]
+            if user_id:
+                appointments = [apt for apt in appointments if apt.get('user_id') == user_id]
+            return appointments
 
     def get_appointment_by_reference(self, reference):
-        for apt in self.appointments:
-            if apt['reference'] == reference:
-                return apt
-        return None
+        """Obtener una cita por su referencia"""
+        if self.use_firestore:
+            try:
+                appointments_ref = self.db.collection('appointments')
+                query = appointments_ref.where('reference', '==', reference).limit(1)
+                docs = list(query.stream())
+                if docs:
+                    apt = docs[0].to_dict()
+                    apt['firestore_id'] = docs[0].id
+                    return apt
+                return None
+            except Exception as e:
+                print(f"Error obteniendo cita de Firestore: {e}")
+                return None
+        else:
+            for apt in self.appointments:
+                if apt['reference'] == reference:
+                    return apt
+            return None
 
     def cancel_appointment(self, reference):
-        for apt in self.appointments:
-            if apt['reference'] == reference:
-                apt['status'] = 'cancelada'
-                apt['cancelled_at'] = datetime.now().isoformat()
-                self.save_appointments()
-                return {"success": True, "message": "Cita cancelada"}
-        return {"success": False, "message": "Cita no encontrada"}
+        """Cancelar una cita"""
+        if self.use_firestore:
+            try:
+                appointments_ref = self.db.collection('appointments')
+                query = appointments_ref.where('reference', '==', reference).limit(1)
+                docs = list(query.stream())
+                if docs:
+                    doc_ref = appointments_ref.document(docs[0].id)
+                    doc_ref.update({
+                        'status': 'cancelada',
+                        'cancelled_at': datetime.now().isoformat(),
+                        'cancelled_at_timestamp': firestore.SERVER_TIMESTAMP
+                    })
+                    return {"success": True, "message": "Cita cancelada"}
+                return {"success": False, "message": "Cita no encontrada"}
+            except Exception as e:
+                print(f"Error cancelando cita en Firestore: {e}")
+                return {"success": False, "message": "Error al cancelar la cita"}
+        else:
+            for apt in self.appointments:
+                if apt['reference'] == reference:
+                    apt['status'] = 'cancelada'
+                    apt['cancelled_at'] = datetime.now().isoformat()
+                    self.save_appointments()
+                    return {"success": True, "message": "Cita cancelada"}
+            return {"success": False, "message": "Cita no encontrada"}
 
     def get_available_slots(self, date_str):
+        """Obtener horarios disponibles para una fecha"""
         try:
             target_date = datetime.strptime(date_str, "%Y-%m-%d")
             weekday = target_date.weekday()
@@ -185,9 +332,22 @@ class DangoAutoBot:
             else:
                 slots = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"]
 
-            occupied = [apt['time'] for apt in self.appointments if apt['date'] == date_str and apt['status'] != 'cancelada']
+            if self.use_firestore:
+                try:
+                    appointments_ref = self.db.collection('appointments')
+                    query = appointments_ref.where('date', '==', date_str)\
+                                           .where('status', '!=', 'cancelada')
+                    docs = query.stream()
+                    occupied = [doc.to_dict()['time'] for doc in docs if 'time' in doc.to_dict()]
+                except Exception as e:
+                    print(f"Error obteniendo citas ocupadas de Firestore: {e}")
+                    occupied = []
+            else:
+                occupied = [apt['time'] for apt in self.appointments if apt['date'] == date_str and apt['status'] != 'cancelada']
+            
             available = [slot for slot in slots if slot not in occupied]
 
+            # Filtrar horarios pasados si es el día de hoy
             if target_date.date() == datetime.now().date():
                 current_hour = datetime.now().hour
                 available = [s for s in available if int(s.split(':')[0]) > current_hour]
