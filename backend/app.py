@@ -55,6 +55,8 @@ app = Flask(__name__, static_folder=None)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Desactivar caché para desarrollo
 
 # Configurar CORS para producción (Firebase), desarrollo local y apps móviles
+# IMPORTANTE: No usar @app.after_request para añadir headers CORS manualmente
+# ya que flask-cors los añade automáticamente y causaría duplicados
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -73,22 +75,8 @@ CORS(app, resources={
     }
 })
 
-# Manejar preflight OPTIONS explícitamente
-@app.after_request
-def after_request(response):
-    # Permitir CORS para apps móviles también
-    origin = request.headers.get('Origin')
-    if origin:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-    else:
-        # Si no hay Origin (apps móviles), permitir desde cualquier origen
-        response.headers.add('Access-Control-Allow-Origin', '*')
-    
-    if request.method == 'OPTIONS':
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        response.headers.add('Access-Control-Max-Age', '3600')
-    return response
+# Nota: flask-cors maneja automáticamente los headers CORS
+# No necesitamos @app.after_request para evitar duplicados
 
 class DangoAutoBot:
     def __init__(self, appointments_file='data/citas.json', use_firestore=True):
@@ -469,15 +457,7 @@ def api_get_appointments():
     appointments = bot.get_appointments(date_filter)
     return jsonify({"success": True, "appointments": appointments, "total": len(appointments)})
 
-@app.route('/api/appointments', methods=['OPTIONS'])
-def api_appointments_options():
-    """Manejar peticiones OPTIONS (preflight) para CORS"""
-    response = jsonify({})
-    response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    response.headers.add('Access-Control-Max-Age', '3600')
-    return response
+# flask-cors maneja automáticamente las peticiones OPTIONS
 
 @app.route('/api/appointments', methods=['POST'])
 def api_create_appointment():
@@ -519,20 +499,7 @@ def api_cancel_appointment(reference):
     return jsonify(result), 200 if result['success'] else 404
 
 # --- Endpoints de Autenticación ---
-@app.route('/api/auth/register', methods=['OPTIONS'])
-@app.route('/api/auth/login', methods=['OPTIONS'])
-def api_auth_options():
-    """Manejar peticiones OPTIONS (preflight) para CORS en autenticación"""
-    response = jsonify({})
-    origin = request.headers.get('Origin')
-    if origin:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-    else:
-        response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
-    response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    response.headers.add('Access-Control-Max-Age', '3600')
-    return response
+# flask-cors maneja automáticamente las peticiones OPTIONS (no necesitamos handlers manuales)
 
 @app.route('/api/auth/register', methods=['POST'])
 def api_register():
@@ -644,19 +611,7 @@ def api_available_slots():
     slots = bot.get_available_slots(date_str)
     return jsonify({"success": True, "date": date_str, "slots": slots, "total_available": len(slots)})
 
-@app.route('/api/cars', methods=['OPTIONS'])
-def api_cars_options():
-    """Manejar peticiones OPTIONS (preflight) para CORS en coches"""
-    response = jsonify({})
-    origin = request.headers.get('Origin')
-    if origin:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-    else:
-        response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    response.headers.add('Access-Control-Max-Age', '3600')
-    return response
+# flask-cors maneja automáticamente las peticiones OPTIONS
 
 def get_default_cars():
     """Obtener lista de coches por defecto (los mismos que en la web)"""

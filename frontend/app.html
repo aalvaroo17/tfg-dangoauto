@@ -842,7 +842,10 @@
             const errorDiv = document.getElementById('authError');
 
             try {
-                const apiUrl = window.API_BASE_URL || '';
+                const apiUrl = window.API_BASE_URL || 'https://tfg-dangoauto.onrender.com';
+                console.log('🔐 Intentando autenticación con API:', apiUrl);
+                console.log('🔐 Modo:', isRegisterMode ? 'Registro' : 'Login');
+                console.log('🔐 Usuario:', username);
                 
                 if (isRegisterMode) {
                     if (!email) {
@@ -853,11 +856,31 @@
                     
                     const response = await fetch(`${apiUrl}/api/auth/register`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
                         body: JSON.stringify({ username, password, email })
                     });
                     
+                    // Verificar si la respuesta es OK antes de parsear JSON
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        let errorMessage = 'Error al registrar';
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            errorMessage = errorJson.message || errorMessage;
+                        } catch {
+                            errorMessage = `Error ${response.status}: ${errorText || 'Error desconocido'}`;
+                        }
+                        errorDiv.textContent = errorMessage;
+                        errorDiv.style.display = 'block';
+                        console.error('Error en registro:', response.status, errorText);
+                        return;
+                    }
+                    
                     const result = await response.json();
+                    console.log('Respuesta del registro:', result);
                     
                     if (result.success) {
                         // Guardar también en localStorage como fallback
@@ -871,21 +894,44 @@
                     } else {
                         errorDiv.textContent = result.message || 'Error al registrar';
                         errorDiv.style.display = 'block';
+                        console.error('Registro fallido:', result);
                     }
                 } else {
                     const response = await fetch(`${apiUrl}/api/auth/login`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
                         body: JSON.stringify({ username, password })
                     });
                     
+                    // Verificar si la respuesta es OK antes de parsear JSON
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        let errorMessage = 'Error al iniciar sesión';
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            errorMessage = errorJson.message || errorMessage;
+                        } catch {
+                            errorMessage = `Error ${response.status}: ${errorText || 'Error desconocido'}`;
+                        }
+                        errorDiv.textContent = errorMessage;
+                        errorDiv.style.display = 'block';
+                        console.error('Error en login:', response.status, errorText);
+                        return;
+                    }
+                    
                     const result = await response.json();
+                    console.log('Respuesta del login:', result);
                     
                     if (result.success) {
                         // Guardar también en localStorage como fallback
                         const users = JSON.parse(localStorage.getItem('users') || '{}');
-                        users[username] = { username, password, email: result.user.email };
-                        localStorage.setItem('users', JSON.stringify(users));
+                        if (result.user && result.user.email) {
+                            users[username] = { username, password, email: result.user.email };
+                            localStorage.setItem('users', JSON.stringify(users));
+                        }
                         
                         currentUser = result.user;
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -893,6 +939,7 @@
                     } else {
                         errorDiv.textContent = result.message || 'Error al iniciar sesión';
                         errorDiv.style.display = 'block';
+                        console.error('Login fallido:', result);
                     }
                 }
             } catch (err) {
