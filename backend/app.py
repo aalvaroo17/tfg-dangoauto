@@ -47,6 +47,12 @@ class DangoAutoBot:
 
     def load_appointments(self):
         """Cargar citas desde el archivo JSON"""
+        # Asegurar que el directorio existe
+        data_dir = os.path.dirname(self.appointments_file)
+        if data_dir and not os.path.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+            print(f"✓ Directorio creado: {data_dir}")
+        
         if os.path.exists(self.appointments_file):
             try:
                 with open(self.appointments_file, 'r', encoding='utf-8') as f:
@@ -60,12 +66,21 @@ class DangoAutoBot:
                 return []
         else:
             # Crear archivo vacío si no existe
-            with open(self.appointments_file, 'w', encoding='utf-8') as f:
-                json.dump([], f)
+            try:
+                with open(self.appointments_file, 'w', encoding='utf-8') as f:
+                    json.dump([], f)
+                print(f"✓ Archivo de citas creado: {self.appointments_file}")
+            except Exception as e:
+                print(f"Error creando archivo de citas: {e}")
             return []
 
     def save_appointments(self):
         """Guardar citas en citas.json"""
+        # Asegurar que el directorio existe
+        data_dir = os.path.dirname(self.appointments_file)
+        if data_dir and not os.path.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+        
         try:
             with open(self.appointments_file, 'w', encoding='utf-8') as f:
                 json.dump(self.appointments, f, indent=2, ensure_ascii=False)
