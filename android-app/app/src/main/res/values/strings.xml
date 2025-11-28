@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DangoAuto</string>
+    <string name="btn_buscar_filtrar">Buscar / Filtrar</string>
+    <string name="btn_vender_coche">Vender Coche</string>
+    <string name="btn_comprar_coche">Comprar Coche (Asistente IA)</string>
+    <string name="search_hint">Buscar coches...</string>
+    <string name="filter_title">Filtros Avanzados</string>
+    <string name="marca">Marca</string>
+    <string name="modelo">Modelo</string>
+    <string name="precio_min">Precio Mínimo</string>
+    <string name="precio_max">Precio Máximo</string>
+    <string name="dni_nie">Número de Identificación (DNI/NIE)</string>
+    <string name="telefono">Número de Teléfono</string>
+    <string name="email">Correo Electrónico</string>
+    <string name="btn_subir_info">Subir Información del Coche</string>
+    <string name="info_subida">Información del coche subida correctamente</string>
+    <string name="campos_vacios">Por favor, complete todos los campos</string>
+</resources>

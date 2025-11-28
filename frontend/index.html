@@ -367,6 +367,71 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
+        /* App Navegador section */
+        .app-navegador-content {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4rem 2rem;
+            border-radius: 20px;
+        }
+
+        .app-navegador-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .app-navegador-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .app-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+            padding: 1.5rem 4rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+            margin-top: 1rem;
+        }
+
+        .app-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        .app-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            text-align: left;
+        }
+
+        .app-feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .app-feature h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .app-feature p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
         /* Download section */
         .download-content {
             text-align: center;
@@ -501,6 +566,7 @@
                 <li><a href="#sobre-nosotros">Sobre Nosotros</a></li>
                 <li><a href="#catalogo">Catálogo</a></li>
                 <li><a href="#contacto">Contacto</a></li>
+                <li><a href="#app-navegador">App Navegador</a></li>
                 <li><a href="#descargar">Descargar</a></li>
             </ul>
         </nav>
@@ -614,17 +680,45 @@
             </div>
         </section>
 
+        <section id="app-navegador">
+            <div class="app-navegador-content">
+                <h2>🌐 App Navegador</h2>
+                <p>Accede a nuestra aplicación completa directamente desde tu navegador</p>
+                <a href="/app" class="app-button">Abrir App Navegador</a>
+                <div class="app-features">
+                    <div class="app-feature">
+                        <h3>🔐 Inicio de Sesión</h3>
+                        <p>Regístrate o inicia sesión para gestionar tus citas y preferencias</p>
+                    </div>
+                    <div class="app-feature">
+                        <h3>🔍 Búsqueda Avanzada</h3>
+                        <p>Filtra coches por marca, precio, combustible y kilometraje</p>
+                    </div>
+                    <div class="app-feature">
+                        <h3>📅 Mis Citas</h3>
+                        <p>Consulta y gestiona todas tus citas desde un solo lugar</p>
+                    </div>
+                    <div class="app-feature">
+                        <h3>💻 Sin Instalación</h3>
+                        <p>Funciona en cualquier dispositivo con navegador, sin descargas</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="descargar">
             <div class="download-content">
-                <h2>Aplicaciones DangoAuto</h2>
-                <p>Elige cómo quieres usar DangoAuto:</p>
-                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
-                    <a href="/app" class="download-button" style="background: linear-gradient(45deg, #9b59b6, #8e44ad);">🌐 Usar Aplicación Web</a>
-                    <a href="/download/java-app" class="download-button" id="downloadLink">💻 Descargar App de Escritorio</a>
+                <h2>📱 App Móvil Android</h2>
+                <p>Descarga nuestra aplicación móvil para Android y gestiona tus coches desde cualquier lugar</p>
+                <div style="margin-top: 2rem;">
+                    <a href="/download/android-app" class="download-button" id="downloadLink">Descargar APK</a>
                 </div>
                 <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.9;">
-                    <strong>Aplicación Web:</strong> Funciona directamente en tu navegador, sin descargas.<br>
-                    <strong>App de Escritorio:</strong> Requiere Java 11+. Descarga y ejecuta DangoAuto.bat.
+                    <strong>Características:</strong> Búsqueda avanzada, venta de coches, asistente IA para compra.<br>
+                    Disponible para Android 7.0+ (API 24+). Escanea el QR o descarga directamente desde tu móvil.
+                </p>
+                <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">
+                    <strong>Nota:</strong> Si el APK no está disponible, compílalo desde Android Studio primero.
                 </p>
             </div>
         </section>
@@ -871,12 +965,22 @@
 
     function showMessage(message, type) {
         const messageDiv = document.getElementById('appointmentMessage');
+        if (!messageDiv) {
+            console.error('No se encontró el elemento appointmentMessage');
+            alert(message); // Fallback si no existe el elemento
+            return;
+        }
         messageDiv.textContent = message;
-        messageDiv.style.display='block';
-        messageDiv.style.backgroundColor = type==='success'?'#d4edda':'#f8d7da';
-        messageDiv.style.color = type==='success'?'#155724':'#721c24';
-        messageDiv.style.border = `1px solid ${type==='success'?'#c3e6cb':'#f5c6cb'}`;
-        setTimeout(()=>{ messageDiv.style.display='none'; },5000);
+        messageDiv.style.display = 'block';
+        messageDiv.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
+        messageDiv.style.color = type === 'success' ? '#155724' : '#721c24';
+        messageDiv.style.border = `1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'}`;
+        messageDiv.style.padding = '1rem';
+        messageDiv.style.borderRadius = '8px';
+        messageDiv.style.marginTop = '1rem';
+        setTimeout(() => { 
+            messageDiv.style.display = 'none'; 
+        }, 5000);
     }
 
     // --- Navegación, scroll y animaciones ---

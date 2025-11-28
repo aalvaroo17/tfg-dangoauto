@@ -14,15 +14,29 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Desactivar caché para desarrollo
 CORS(app, resources={
     r"/api/*": {
         "origins": [
+            "https://tfg-front-cb1b2.web.app",
+            "https://tfg-front-cb1b2.firebaseapp.com",
             "https://tfg-front.web.app",
             "https://tfg-front.firebaseapp.com",
             "http://localhost:5000",
             "http://127.0.0.1:5000"
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True,
+        "expose_headers": ["Content-Type"]
     }
 })
+
+# Manejar preflight OPTIONS explícitamente
+@app.after_request
+def after_request(response):
+    if request.method == 'OPTIONS':
+        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        response.headers.add('Access-Control-Max-Age', '3600')
+    return response
 
 class DangoAutoBot:
     def __init__(self, appointments_file='data/citas.json'):
@@ -177,9 +191,21 @@ def api_get_appointments():
     appointments = bot.get_appointments(date_filter)
     return jsonify({"success": True, "appointments": appointments, "total": len(appointments)})
 
+@app.route('/api/appointments', methods=['OPTIONS'])
+def api_appointments_options():
+    """Manejar peticiones OPTIONS (preflight) para CORS"""
+    response = jsonify({})
+    response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.add('Access-Control-Max-Age', '3600')
+    return response
+
 @app.route('/api/appointments', methods=['POST'])
 def api_create_appointment():
     data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "message": "No se recibieron datos"}), 400
     for key in ['name','phone','date','time']:
         if key not in data:
             return jsonify({"success": False, "message": "Faltan campos", "error_code": "MISSING_FIELDS"}), 400
@@ -250,57 +276,56 @@ def serve_static(filename):
     print(f"✓ Sirviendo archivo estático: {filename}")
     return send_from_directory(static_dir, filename)
 
-@app.route('/download/java-app')
-def download_java_app():
+@app.route('/download/android-app')
+def download_android_app():
     """
-    Ruta para descargar la aplicación Java.
-    Busca el archivo JAR o EXE en la carpeta dist/ y lo sirve con headers correctos.
+    Ruta para descargar la aplicación Android (APK).
+    Busca el archivo APK en android-app/app/build/outputs/apk/ y lo sirve.
     """
     from flask import send_file, Response
     
-    # Buscar el archivo en dist/ (priorizar .exe, luego .zip, luego .jar)
-    dist_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dist')
+    # Buscar el APK en diferentes ubicaciones posibles
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    android_dir = os.path.join(base_dir, 'android-app', 'app', 'build', 'outputs', 'apk')
+    
+    # Prioridad: release primero, luego debug
     possible_files = [
-        os.path.join(dist_dir, 'DangoAuto.exe'),  # Prioridad: .exe primero
-        os.path.join(dist_dir, 'DangoAuto.zip'),  # ZIP con JAR + script
-        os.path.join(dist_dir, 'DangoAuto.jar'),
-        os.path.join(dist_dir, 'dangoauto-app-1.0.0.jar')
+        os.path.join(android_dir, 'release', 'app-release.apk'),
+        os.path.join(android_dir, 'debug', 'app-debug.apk'),
+        os.path.join(android_dir, 'debug', 'app-debug.apk'),  # Fallback
     ]
     
-    print(f"Buscando archivo en: {dist_dir}")
+    print(f"Buscando APK en: {android_dir}")
     for file_path in possible_files:
         print(f"  - Verificando: {file_path} (existe: {os.path.exists(file_path)})")
         if os.path.exists(file_path):
             try:
                 filename = os.path.basename(file_path)
                 print(f"  ✓ Encontrado: {filename}")
-                # Nombre del archivo para descarga
-                if filename.endswith('.exe'):
-                    download_filename = 'DangoAuto.exe'
-                    mimetype = 'application/x-msdownload'
-                elif filename.endswith('.zip'):
-                    download_filename = 'DangoAuto.zip'
-                    mimetype = 'application/zip'
-                else:
-                    download_filename = 'DangoAuto.jar'
-                    mimetype = 'application/java-archive'
                 
                 return send_file(
                     file_path,
                     as_attachment=True,
-                    download_name=download_filename,
-                    mimetype=mimetype
+                    download_name='DangoAuto.apk',
+                    mimetype='application/vnd.android.package-archive'
                 )
             except Exception as e:
-                print(f"Error al servir archivo: {e}")
+                print(f"Error al servir APK: {e}")
                 return Response(
-                    f"Error al acceder al archivo: {str(e)}",
+                    f"Error al acceder al APK: {str(e)}",
                     status=500,
                     mimetype='text/plain'
                 )
     
     # Si no se encuentra el archivo
-    error_msg = f"La aplicación Java aún no está compilada.\n\nBuscado en: {dist_dir}\n\nEjecuta 'build.bat' en la raíz del proyecto para generar el JAR."
+    error_msg = (
+        "El APK aún no está compilado.\n\n"
+        f"Buscado en: {android_dir}\n\n"
+        "Para generar el APK:\n"
+        "1. Abre Android Studio\n"
+        "2. Build > Build Bundle(s) / APK(s) > Build APK(s)\n"
+        "O desde terminal: cd android-app && ./gradlew assembleDebug"
+    )
     return Response(error_msg, status=404, mimetype='text/plain')
 
 if __name__ == '__main__':

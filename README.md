@@ -1,6 +1,6 @@
 # DangoAuto - Sistema de Gestión de Concesionario
 
-Proyecto TFG que integra una aplicación web con backend Python y una aplicación de escritorio en Java.
+Proyecto TFG que integra una aplicación web con backend Python y una aplicación móvil Android.
 
 ## 📋 Descripción
 
@@ -8,7 +8,7 @@ DangoAuto es un sistema completo para la gestión de un concesionario de vehícu
 
 - **Frontend Web**: Interfaz web moderna con HTML/CSS/JavaScript para mostrar el catálogo de vehículos y gestionar citas
 - **Backend Python**: API REST con Flask para procesar formularios y gestionar citas
-- **Aplicación Java**: Aplicación de escritorio JavaFX para búsqueda de vehículos y gestión de citas
+- **Aplicación Android**: Aplicación móvil desarrollada en Android Studio con Java para búsqueda de vehículos y gestión de citas
 
 ## 🗂️ Estructura del Proyecto
 
@@ -16,26 +16,27 @@ DangoAuto es un sistema completo para la gestión de un concesionario de vehícu
 ProyectoTFG1/
 ├── frontend/              # Aplicación web frontend
 │   ├── index.html        # Página principal
+│   ├── app.html          # Aplicación web completa
 │   └── static/           # Archivos estáticos (CSS, imágenes, JS)
+│       ├── config.js     # Configuración de la API
 │       └── Imagenes/     # Imágenes de vehículos
 │
 ├── backend/              # Backend Python (Flask)
 │   ├── app.py           # Aplicación principal Flask
 │   ├── requirements.txt  # Dependencias Python
+│   ├── Procfile         # Configuración para Render.com
 │   └── data/            # Datos de la aplicación
 │       └── citas.json   # Archivo de citas (generado automáticamente)
 │
-├── java-app/            # Aplicación Java
-│   ├── pom.xml         # Configuración Maven
-│   └── src/            # Código fuente Java
-│       └── main/
-│           ├── java/   # Código Java
-│           └── resources/ # Recursos (FXML)
+├── android-app/         # Aplicación Android
+│   ├── app/             # Módulo principal de la app
+│   │   └── src/main/
+│   │       ├── java/    # Código fuente Java
+│   │       └── res/     # Recursos (layouts, strings, etc.)
+│   └── build.gradle     # Configuración Gradle
 │
-├── dist/               # Archivos compilados para distribución
-│   └── DangoAuto.jar   # JAR ejecutable (generado)
-│
-└── docs/               # Documentación adicional
+├── firebase.json        # Configuración Firebase Hosting
+└── .firebaserc         # Configuración de proyecto Firebase
 ```
 
 ## 🚀 Requisitos
@@ -44,16 +45,10 @@ ProyectoTFG1/
 - Python 3.8 o superior
 - pip (gestor de paquetes Python)
 
-### Aplicación Java
-- Java 8 o superior
-- Maven 3.6 o superior
-
-**Instalación de Maven (Windows):**
-```bash
-winget install Apache.Maven
-```
-
-O descarga manual desde: https://maven.apache.org/download.cgi
+### Aplicación Android
+- Android Studio Hedgehog o superior
+- Android SDK 24+ (Android 7.0)
+- Java 8+
 
 ## 📦 Instalación
 
@@ -64,13 +59,16 @@ cd backend
 pip install -r requirements.txt
 ```
 
-### 2. Aplicación Java
+### 2. Aplicación Android
 
-No requiere instalación adicional. Maven descargará las dependencias automáticamente.
+1. Abre Android Studio
+2. File > Open > Selecciona la carpeta `android-app`
+3. Espera a que Gradle sincronice las dependencias
+4. Ejecuta la aplicación en un emulador o dispositivo físico
 
 ## 🏃 Ejecución
 
-### Backend Python
+### Backend Python (Local)
 
 Desde la raíz del proyecto:
 
@@ -91,81 +89,20 @@ El servidor se iniciará en `http://localhost:5000`
 
 Una vez iniciado el backend, accede a:
 - **Página principal**: http://localhost:5000
+- **Aplicación web**: http://localhost:5000/app
 - **API REST**: http://localhost:5000/api/
 
-### Compilar Aplicación Java
+### Despliegue
 
-**Opción 1: Usando el script de build (recomendado)**
-
-Desde la raíz del proyecto:
-
+#### Frontend (Firebase Hosting)
 ```bash
-# Windows (PowerShell)
-.\build.bat
-
-# Windows (CMD)
-build.bat
-
-# Linux/Mac
-chmod +x build.sh
-./build.sh
+firebase deploy --only hosting
 ```
 
-**Opción 2: Manualmente**
-
-Desde la carpeta `java-app`:
-
-```bash
-cd java-app
-mvn clean package
-```
-
-El JAR ejecutable se generará en `java-app/target/dangoauto-app-1.0.0.jar`
-
-**Para ejecutar la aplicación Java:**
-
-```bash
-java -jar java-app/target/dangoauto-app-1.0.0.jar
-```
-
-O si usaste el script de build:
-
-```bash
-java -jar dist/DangoAuto.jar
-```
-
-### Generar JAR para Distribución
-
-Después de compilar, copia el JAR a la carpeta `dist`:
-
-```bash
-# Windows
-copy java-app\target\dangoauto-app-1.0.0.jar dist\DangoAuto.jar
-
-# Linux/Mac
-cp java-app/target/dangoauto-app-1.0.0.jar dist/DangoAuto.jar
-```
-
-## 📥 Descarga de la Aplicación Java
-
-La aplicación Java se puede descargar desde la web:
-
-1. Inicia el servidor backend: `python backend/app.py`
-2. Accede a la página web: http://localhost:5000
-3. Haz clic en el botón "Descargar Aplicación Java" en la sección de descarga
-4. El archivo JAR se descargará automáticamente
-
-**Nota**: El archivo debe estar en `dist/DangoAuto.jar` para que la descarga funcione.
-
-## 🔧 Configuración
-
-### Archivo de Citas
-
-Las citas se guardan automáticamente en `backend/data/citas.json`. Este archivo se crea automáticamente si no existe.
-
-### Rutas de Imágenes
-
-Las imágenes de los vehículos deben estar en `frontend/static/Imagenes/`. La aplicación Java busca estas imágenes en rutas relativas.
+#### Backend (Render.com)
+- Configura el Root Directory como `backend`
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `gunicorn app:app --bind 0.0.0.0:$PORT`
 
 ## 📚 API REST
 
@@ -176,7 +113,6 @@ Las imágenes de los vehículos deben estar en `frontend/static/Imagenes/`. La a
 - `GET /api/appointments/<reference>` - Obtener una cita por referencia
 - `POST /api/appointments/<reference>/cancel` - Cancelar una cita
 - `GET /api/available-slots?date=YYYY-MM-DD` - Obtener horarios disponibles
-- `GET /download/java-app` - Descargar aplicación Java
 
 ### Ejemplo de Creación de Cita
 
@@ -195,16 +131,15 @@ Content-Type: application/json
 ## 🛠️ Tecnologías Utilizadas
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Backend**: Python 3, Flask, Flask-CORS
-- **Aplicación Java**: Java 8, JavaFX, Jackson (JSON)
-- **Build Tool**: Maven
+- **Backend**: Python 3, Flask, Flask-CORS, Gunicorn
+- **Aplicación Android**: Java, Android SDK, Material Design Components
+- **Despliegue**: Firebase Hosting, Render.com
 
 ## 📝 Notas de Desarrollo
 
-- El proyecto está configurado para Java 8 para máxima compatibilidad
-- La aplicación JavaFX requiere que JavaFX esté disponible (incluido en Java 8)
 - El backend usa CORS para permitir peticiones desde el frontend
 - Las citas se validan según horarios de negocio (L-V 9:00-18:00, S 10:00-14:00)
+- La aplicación Android requiere Android 7.0+ (API 24+)
 
 ## 📄 Licencia
 
@@ -216,6 +151,5 @@ Desarrollado como proyecto académico.
 
 ---
 
-**Versión**: 1.0.0  
+**Versión**: 2.0.0  
 **Última actualización**: 2025
-
