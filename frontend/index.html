@@ -1274,7 +1274,7 @@
                 <h2>📱 App Móvil Android</h2>
                 <p>Descarga nuestra aplicación móvil para Android y gestiona tus coches desde cualquier lugar</p>
                 <div style="margin-top: 2rem;">
-                    <a href="/download/android-app" class="download-button" id="downloadLink">Descargar APK</a>
+                    <a href="#" class="download-button" id="downloadLink">Descargar APK</a>
                 </div>
                 <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.9;">
                     <strong>Características:</strong> Búsqueda avanzada, venta de coches, asistente IA para compra.<br>
@@ -1850,13 +1850,15 @@
                     return false;
                 }
 
+                // Prevenir comportamiento por defecto para manejar la descarga
+                e.preventDefault();
+                
+                // Obtener URL del backend (desde config.js o usar la del entorno)
+                const apiUrl = window.API_BASE_URL || 'https://tfg-dangoauto.onrender.com';
+                const downloadUrl = `${apiUrl}/download/android-app`;
+                
                 // Si es móvil, forzar descarga directa
                 if (isMobileDevice()) {
-                    // No prevenir el comportamiento por defecto, dejar que el navegador descargue
-                    // El backend ya está configurado para servir el APK con los headers correctos
-                    const apiUrl = window.API_BASE_URL || '';
-                    const downloadUrl = apiUrl ? `${apiUrl}/download/android-app` : '/download/android-app';
-                    
                     // Crear un enlace temporal para forzar la descarga
                     const tempLink = document.createElement('a');
                     tempLink.href = downloadUrl;
@@ -1867,6 +1869,11 @@
                     document.body.removeChild(tempLink);
                     
                     // También abrir directamente por si acaso
+                    setTimeout(() => {
+                        window.location.href = downloadUrl;
+                    }, 100);
+                } else {
+                    // En escritorio, abrir directamente
                     window.location.href = downloadUrl;
                 }
             });
