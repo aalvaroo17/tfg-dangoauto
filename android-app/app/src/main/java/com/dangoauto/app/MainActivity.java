@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnBuscarFiltrar;
     private Button btnVenderCoche;
     private Button btnComprarCoche;
+    private Button btnCerrarSesion;
     private TextView textViewWelcome;
 
     @Override
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
             btnBuscarFiltrar = findViewById(R.id.btnBuscarFiltrar);
             btnVenderCoche = findViewById(R.id.btnVenderCoche);
             btnComprarCoche = findViewById(R.id.btnComprarCoche);
+            btnCerrarSesion = findViewById(R.id.btnCerrarSesion);
 
             // Configurar listeners
             if (btnBuscarFiltrar != null) {
@@ -80,6 +82,27 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, 
                         "Funcionalidad de Asistente IA próximamente", 
                         Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            if (btnCerrarSesion != null) {
+                btnCerrarSesion.setOnClickListener(v -> {
+                    try {
+                        // Limpiar sesión
+                        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.clear();
+                        editor.apply();
+                        
+                        // Ir a LoginActivity
+                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    } catch (Exception e) {
+                        android.util.Log.e("MainActivity", "Error cerrando sesión", e);
+                        Toast.makeText(MainActivity.this, "Error al cerrar sesión", Toast.LENGTH_SHORT).show();
+                    }
                 });
             }
         } catch (Exception e) {

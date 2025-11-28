@@ -7,13 +7,25 @@
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="8dp"
-    app:cardBackgroundColor="@color/background_card">
+    app:cardBackgroundColor="@color/background_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="@color/background_card">
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/imageViewCar"
+            android:layout_width="100dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:background="@color/background_secondary"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <TextView
             android:id="@+id/textViewCarName"
@@ -24,8 +36,35 @@
             android:textStyle="bold"
             android:textColor="@color/text_primary"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintStart_toEndOf="@+id/imageViewCar"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="16dp" />
+
+        <TextView
+            android:id="@+id/textViewCarPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="24,300€"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/accent_gold"
+            app:layout_constraintTop_toBottomOf="@+id/textViewCarName"
+            app:layout_constraintStart_toEndOf="@+id/imageViewCar"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/textViewCarSpecs"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="2022 • 15,000 km • Diésel"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintTop_toBottomOf="@+id/textViewCarPrice"
+            app:layout_constraintStart_toEndOf="@+id/imageViewCar"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<androidx.core.widget.NestedScrollView 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,15 +8,192 @@
     android:background="@color/background_dark"
     tools:context=".SearchActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewCars"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:padding="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/item_car" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/textViewTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Buscar Coches"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutSearch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Buscar por nombre, marca o modelo..."
+            app:layout_constraintTop_toBottomOf="@+id/textViewTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:hintTextColor="@color/accent_gold"
+            app:boxStrokeColor="@color/accent_gold">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/textViewFiltersTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filtros"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutSearch"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutMarca"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Marca"
+            app:layout_constraintTop_toBottomOf="@+id/textViewFiltersTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/textInputLayoutPrecioMin"
+            app:layout_constraintWidth_percent="0.48"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:hintTextColor="@color/accent_gold"
+            app:boxStrokeColor="@color/accent_gold">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextMarca"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutPrecioMin"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Precio Mín (€)"
+            app:layout_constraintTop_toBottomOf="@+id/textViewFiltersTitle"
+            app:layout_constraintStart_toEndOf="@+id/textInputLayoutMarca"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintWidth_percent="0.48"
+            android:layout_marginTop="12dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:hintTextColor="@color/accent_gold"
+            app:boxStrokeColor="@color/accent_gold">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextPrecioMin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutPrecioMax"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Precio Máx (€)"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutMarca"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/textInputLayoutCombustible"
+            app:layout_constraintWidth_percent="0.48"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:hintTextColor="@color/accent_gold"
+            app:boxStrokeColor="@color/accent_gold">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextPrecioMax"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutCombustible"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Combustible"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutPrecioMin"
+            app:layout_constraintStart_toEndOf="@+id/textInputLayoutPrecioMax"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintWidth_percent="0.48"
+            android:layout_marginTop="12dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:hintTextColor="@color/accent_gold"
+            app:boxStrokeColor="@color/accent_gold">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextCombustible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/btnFiltrar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Filtrar"
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:backgroundTint="@color/accent_gold"
+            android:textColor="@color/background_dark"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutPrecioMax"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnLimpiar"
+            app:layout_constraintWidth_percent="0.48"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnLimpiar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Limpiar"
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:backgroundTint="@color/background_card"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutCombustible"
+            app:layout_constraintStart_toEndOf="@+id/btnFiltrar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintWidth_percent="0.48"
+            android:layout_marginTop="16dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewCars"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/btnFiltrar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="16dp"
+            tools:listitem="@layout/item_car" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

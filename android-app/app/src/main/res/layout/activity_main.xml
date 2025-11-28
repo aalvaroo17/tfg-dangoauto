@@ -94,4 +94,20 @@
         app:layout_constraintWidth_percent="0.9"
         android:layout_marginTop="24dp" />
 
+    <Button
+        android:id="@+id/btnCerrarSesion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Cerrar Sesión"
+        android:textSize="14sp"
+        android:padding="12dp"
+        android:backgroundTint="@color/background_card"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@+id/btnComprarCoche"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.9"
+        android:layout_marginTop="32dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

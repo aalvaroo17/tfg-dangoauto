@@ -643,6 +643,130 @@ def api_available_slots():
     slots = bot.get_available_slots(date_str)
     return jsonify({"success": True, "date": date_str, "slots": slots, "total_available": len(slots)})
 
+@app.route('/api/cars', methods=['OPTIONS'])
+def api_cars_options():
+    """Manejar peticiones OPTIONS (preflight) para CORS en coches"""
+    response = jsonify({})
+    origin = request.headers.get('Origin')
+    if origin:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    else:
+        response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    response.headers.add('Access-Control-Max-Age', '3600')
+    return response
+
+@app.route('/api/cars', methods=['GET'])
+def api_get_cars():
+    """Obtener lista de coches disponibles"""
+    try:
+        if db:
+            cars_ref = db.collection('cars')
+            docs = cars_ref.stream()
+            
+            cars = []
+            for doc in docs:
+                car_data = doc.to_dict()
+                car_data['id'] = doc.id
+                cars.append(car_data)
+            
+            return jsonify({
+                "success": True,
+                "cars": cars,
+                "total": len(cars)
+            }), 200
+        else:
+            # Fallback: devolver coches de ejemplo si no hay Firestore
+            example_cars = [
+                {
+                    "id": "1",
+                    "name": "BMW Serie 3",
+                    "brand": "BMW",
+                    "model": "Serie 3",
+                    "price": 35900,
+                    "year": 2022,
+                    "km": 15000,
+                    "fuel": "Diésel",
+                    "power": "190 CV",
+                    "transmission": "Automático",
+                    "description": "Sedán premium con excelente rendimiento y tecnología avanzada.",
+                    "licensePlate": "",
+                    "features": ["GPS", "Asientos de cuero", "Climatizador automático"],
+                    "images": ["/static/Imagenes/ImagenBMW.jpg"]
+                }
+            ]
+            return jsonify({
+                "success": True,
+                "cars": example_cars,
+                "total": len(example_cars)
+            }), 200
+    except Exception as e:
+        print(f"❌ Error en api_get_cars: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
+
+@app.route('/api/cars', methods=['POST'])
+def api_create_car():
+    """Crear un nuevo coche en venta"""
+    try:
+        print(f"🚗 Creación de coche recibida desde: {request.remote_addr}")
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "No se recibieron datos"}), 400
+        
+        # Validar campos requeridos
+        required_fields = ['name', 'price', 'year', 'km', 'fuel', 'licensePlate']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"success": False, "message": f"Campo requerido: {field}"}), 400
+        
+        if db:
+            # Preparar datos del coche
+            car_data = {
+                "name": data.get('name', '').strip(),
+                "brand": data.get('brand', '').strip(),
+                "model": data.get('model', '').strip(),
+                "price": float(data.get('price', 0)),
+                "year": int(data.get('year', 0)),
+                "km": int(data.get('km', 0)),
+                "fuel": data.get('fuel', '').strip(),
+                "power": data.get('power', '').strip(),
+                "transmission": data.get('transmission', '').strip(),
+                "description": data.get('description', '').strip(),
+                "licensePlate": data.get('licensePlate', '').strip(),
+                "images": data.get('images', []),
+                "features": data.get('features', []),
+                "sellerDni": data.get('sellerDni', '').strip(),
+                "sellerPhone": data.get('sellerPhone', '').strip(),
+                "sellerEmail": data.get('sellerEmail', '').strip(),
+                "created_at": firestore.SERVER_TIMESTAMP,
+                "status": "disponible"
+            }
+            
+            # Guardar en Firestore
+            cars_ref = db.collection('cars')
+            doc_ref = cars_ref.document()
+            doc_ref.set(car_data)
+            
+            car_data['id'] = doc_ref.id
+            print(f"✓ Coche guardado en Firestore: {car_data['name']} (ID: {doc_ref.id})")
+            
+            return jsonify({
+                "success": True,
+                "message": "Coche registrado exitosamente",
+                "car": car_data
+            }), 200
+        else:
+            return jsonify({"success": False, "message": "Servicio no disponible"}), 503
+    except Exception as e:
+        print(f"❌ Error en api_create_car: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
+
 # -------------------- Servir HTML --------------------
 @app.route('/')
 def home():

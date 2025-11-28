@@ -15,7 +15,20 @@
     <string name="dni_nie">Número de Identificación (DNI/NIE)</string>
     <string name="telefono">Número de Teléfono</string>
     <string name="email">Correo Electrónico</string>
+    <string name="coche">Coche (Marca y Modelo)</string>
+    <string name="matricula">Matrícula</string>
+    <string name="kilometros">Kilómetros</string>
+    <string name="combustible">Combustible</string>
+    <string name="descripcion">Descripción</string>
+    <string name="precio">Precio (€)</string>
+    <string name="año">Año</string>
+    <string name="potencia">Potencia (CV)</string>
+    <string name="transmision">Transmisión</string>
     <string name="btn_subir_info">Subir Información del Coche</string>
+    <string name="btn_seleccionar_fotos">Seleccionar Fotos</string>
     <string name="info_subida">Información del coche subida correctamente</string>
     <string name="campos_vacios">Por favor, complete todos los campos</string>
+    <string name="ficha_tecnica">Ficha Técnica</string>
+    <string name="especificaciones">Especificaciones</string>
+    <string name="caracteristicas">Características</string>
 </resources>

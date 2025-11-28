@@ -1,18 +1,21 @@
 package com.dangoauto.app;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import java.util.List;
 
 public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
 
-    private List<String> carList;
+    private List<Car> carList;
 
-    public CarAdapter(List<String> carList) {
+    public CarAdapter(List<Car> carList) {
         this.carList = carList;
     }
 
@@ -26,8 +29,37 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull CarViewHolder holder, int position) {
-        String car = carList.get(position);
-        holder.textViewCarName.setText(car);
+        Car car = carList.get(position);
+        
+        // Nombre
+        holder.textViewCarName.setText(car.getFullName());
+        
+        // Precio
+        holder.textViewCarPrice.setText(car.getFormattedPrice());
+        
+        // Especificaciones
+        StringBuilder specs = new StringBuilder();
+        specs.append(car.getYear()).append(" • ");
+        specs.append(String.format("%,d", car.getKm())).append(" km • ");
+        specs.append(car.getFuel());
+        holder.textViewCarSpecs.setText(specs.toString());
+        
+        // Imagen
+        List<String> images = car.getImages();
+        if (images != null && !images.isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                .load(images.get(0))
+                .placeholder(R.color.background_card)
+                .error(R.color.background_card)
+                .into(holder.imageViewCar);
+        }
+        
+        // Click listener
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
+            intent.putExtra("car", car);
+            v.getContext().startActivity(intent);
+        });
     }
 
     @Override
@@ -36,12 +68,17 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
     }
 
     static class CarViewHolder extends RecyclerView.ViewHolder {
+        ImageView imageViewCar;
         TextView textViewCarName;
+        TextView textViewCarPrice;
+        TextView textViewCarSpecs;
 
         CarViewHolder(@NonNull View itemView) {
             super(itemView);
+            imageViewCar = itemView.findViewById(R.id.imageViewCar);
             textViewCarName = itemView.findViewById(R.id.textViewCarName);
+            textViewCarPrice = itemView.findViewById(R.id.textViewCarPrice);
+            textViewCarSpecs = itemView.findViewById(R.id.textViewCarSpecs);
         }
     }
 }
-
