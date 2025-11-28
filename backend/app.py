@@ -224,16 +224,35 @@ class DangoAutoBot:
         if self.use_firestore:
             try:
                 appointments_ref = self.db.collection('appointments')
-                # Convertir timestamp para Firestore
-                appointment_data = appointment.copy()
-                appointment_data['created_at_timestamp'] = firestore.SERVER_TIMESTAMP
+                # Preparar datos para Firestore (sin campos None y con timestamp correcto)
+                appointment_data = {
+                    "id": appointment_id,
+                    "reference": reference,
+                    "name": name.strip().title(),
+                    "phone": phone.strip(),
+                    "date": date_str,
+                    "time": time_str,
+                    "datetime_full": f"{date_str} {time_str}",
+                    "status": "confirmada",
+                    "created_at": now.isoformat(),
+                    "created_at_timestamp": firestore.SERVER_TIMESTAMP,
+                    "notes": ""
+                }
+                # Solo agregar user_id si no es None
+                if user_id:
+                    appointment_data['user_id'] = user_id
+                
+                # Guardar en Firestore
                 doc_ref = appointments_ref.document()
                 doc_ref.set(appointment_data)
                 appointment['firestore_id'] = doc_ref.id
+                print(f"✓ Cita guardada en Firestore: {reference} (ID: {doc_ref.id})")
                 return {"success": True, "message": "¡Cita creada exitosamente!", "appointment": appointment, "reference": reference}
             except Exception as e:
-                print(f"Error guardando cita en Firestore: {e}")
-                return {"success": False, "message": "Error al guardar la cita", "error_code": "SAVE_ERROR"}
+                print(f"❌ Error guardando cita en Firestore: {e}")
+                import traceback
+                traceback.print_exc()
+                return {"success": False, "message": f"Error al guardar la cita: {str(e)}", "error_code": "SAVE_ERROR"}
         else:
             self.appointments.append(appointment)
             if self.save_appointments():
@@ -257,11 +276,20 @@ class DangoAutoBot:
                 appointments = []
                 for doc in docs:
                     apt = doc.to_dict()
-                    apt['firestore_id'] = doc.id
-                    appointments.append(apt)
+                    if apt:  # Verificar que el documento no esté vacío
+                        apt['firestore_id'] = doc.id
+                        # Convertir timestamp de Firestore a string si existe
+                        if 'created_at_timestamp' in apt:
+                            timestamp = apt['created_at_timestamp']
+                            if hasattr(timestamp, 'isoformat'):
+                                apt['created_at_timestamp'] = timestamp.isoformat()
+                        appointments.append(apt)
+                print(f"✓ Obtenidas {len(appointments)} citas de Firestore")
                 return appointments
             except Exception as e:
-                print(f"Error obteniendo citas de Firestore: {e}")
+                print(f"❌ Error obteniendo citas de Firestore: {e}")
+                import traceback
+                traceback.print_exc()
                 return []
         else:
             appointments = self.appointments
@@ -280,11 +308,19 @@ class DangoAutoBot:
                 docs = list(query.stream())
                 if docs:
                     apt = docs[0].to_dict()
-                    apt['firestore_id'] = docs[0].id
-                    return apt
+                    if apt:  # Verificar que el documento no esté vacío
+                        apt['firestore_id'] = docs[0].id
+                        # Convertir timestamp si existe
+                        if 'created_at_timestamp' in apt:
+                            timestamp = apt['created_at_timestamp']
+                            if hasattr(timestamp, 'isoformat'):
+                                apt['created_at_timestamp'] = timestamp.isoformat()
+                        return apt
                 return None
             except Exception as e:
-                print(f"Error obteniendo cita de Firestore: {e}")
+                print(f"❌ Error obteniendo cita de Firestore: {e}")
+                import traceback
+                traceback.print_exc()
                 return None
         else:
             for apt in self.appointments:
@@ -301,16 +337,20 @@ class DangoAutoBot:
                 docs = list(query.stream())
                 if docs:
                     doc_ref = appointments_ref.document(docs[0].id)
-                    doc_ref.update({
+                    update_data = {
                         'status': 'cancelada',
                         'cancelled_at': datetime.now().isoformat(),
                         'cancelled_at_timestamp': firestore.SERVER_TIMESTAMP
-                    })
+                    }
+                    doc_ref.update(update_data)
+                    print(f"✓ Cita cancelada en Firestore: {reference}")
                     return {"success": True, "message": "Cita cancelada"}
                 return {"success": False, "message": "Cita no encontrada"}
             except Exception as e:
-                print(f"Error cancelando cita en Firestore: {e}")
-                return {"success": False, "message": "Error al cancelar la cita"}
+                print(f"❌ Error cancelando cita en Firestore: {e}")
+                import traceback
+                traceback.print_exc()
+                return {"success": False, "message": f"Error al cancelar la cita: {str(e)}"}
         else:
             for apt in self.appointments:
                 if apt['reference'] == reference:
@@ -338,9 +378,15 @@ class DangoAutoBot:
                     query = appointments_ref.where('date', '==', date_str)\
                                            .where('status', '!=', 'cancelada')
                     docs = query.stream()
-                    occupied = [doc.to_dict()['time'] for doc in docs if 'time' in doc.to_dict()]
+                    occupied = []
+                    for doc in docs:
+                        apt_data = doc.to_dict()
+                        if apt_data and 'time' in apt_data:
+                            occupied.append(apt_data['time'])
                 except Exception as e:
-                    print(f"Error obteniendo citas ocupadas de Firestore: {e}")
+                    print(f"❌ Error obteniendo citas ocupadas de Firestore: {e}")
+                    import traceback
+                    traceback.print_exc()
                     occupied = []
             else:
                 occupied = [apt['time'] for apt in self.appointments if apt['date'] == date_str and apt['status'] != 'cancelada']
