@@ -176,10 +176,11 @@ class DangoAutoBot:
         if self.use_firestore:
             try:
                 appointments_ref = self.db.collection('appointments')
-                # Consulta: citas en esa fecha y hora que NO estén canceladas
+                # Consulta simplificada: solo buscar citas confirmadas (evita necesidad de índice compuesto)
+                # Buscamos citas en esa fecha y hora con status 'confirmada'
                 query = appointments_ref.where('date', '==', date_str)\
                                        .where('time', '==', time_str)\
-                                       .where('status', '!=', 'cancelada')\
+                                       .where('status', '==', 'confirmada')\
                                        .limit(1)
                 docs = list(query.stream())
                 is_available = len(docs) == 0
@@ -257,16 +258,53 @@ class DangoAutoBot:
                 doc_ref.set(appointment_data)
                 appointment['firestore_id'] = doc_ref.id
                 print(f"✓ Cita guardada en Firestore: {reference} (ID: {doc_ref.id})")
-                return {"success": True, "message": "¡Cita creada exitosamente!", "appointment": appointment, "reference": reference}
+                # Preparar respuesta con datos actualizados
+                response_data = {
+                    "success": True,
+                    "message": "¡Cita creada exitosamente!",
+                    "appointment": {
+                        "id": appointment_id,
+                        "reference": reference,
+                        "name": name.strip().title(),
+                        "phone": phone.strip(),
+                        "date": date_str,
+                        "time": time_str,
+                        "datetime_full": f"{date_str} {time_str}",
+                        "status": "confirmada",
+                        "created_at": now.isoformat(),
+                        "notes": "",
+                        "firestore_id": doc_ref.id
+                    },
+                    "reference": reference
+                }
+                if user_id:
+                    response_data["appointment"]["user_id"] = user_id
+                return response_data
             except Exception as e:
                 print(f"❌ Error guardando cita en Firestore: {e}")
                 import traceback
                 traceback.print_exc()
                 return {"success": False, "message": f"Error al guardar la cita: {str(e)}", "error_code": "SAVE_ERROR"}
         else:
-            self.appointments.append(appointment)
+            # Para JSON, limpiar el diccionario antes de guardar
+            appointment_clean = {
+                "id": appointment_id,
+                "reference": reference,
+                "name": name.strip().title(),
+                "phone": phone.strip(),
+                "date": date_str,
+                "time": time_str,
+                "datetime_full": f"{date_str} {time_str}",
+                "status": "confirmada",
+                "created_at": now.isoformat(),
+                "notes": ""
+            }
+            if user_id:
+                appointment_clean['user_id'] = user_id
+            
+            self.appointments.append(appointment_clean)
             if self.save_appointments():
-                return {"success": True, "message": "¡Cita creada exitosamente!", "appointment": appointment, "reference": reference}
+                return {"success": True, "message": "¡Cita creada exitosamente!", "appointment": appointment_clean, "reference": reference}
             else:
                 return {"success": False, "message": "Error al guardar la cita", "error_code": "SAVE_ERROR"}
 
@@ -434,14 +472,29 @@ def api_appointments_options():
 
 @app.route('/api/appointments', methods=['POST'])
 def api_create_appointment():
-    data = request.get_json()
-    if not data:
-        return jsonify({"success": False, "message": "No se recibieron datos"}), 400
-    for key in ['name','phone','date','time']:
-        if key not in data:
-            return jsonify({"success": False, "message": "Faltan campos", "error_code": "MISSING_FIELDS"}), 400
-    result = bot.create_appointment(data['name'], data['phone'], data['date'], data['time'])
-    return jsonify(result), 200 if result['success'] else 400
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "No se recibieron datos"}), 400
+        for key in ['name','phone','date','time']:
+            if key not in data:
+                return jsonify({"success": False, "message": "Faltan campos", "error_code": "MISSING_FIELDS"}), 400
+        
+        # Obtener user_id si está disponible (para futura autenticación)
+        user_id = data.get('user_id', None)
+        
+        result = bot.create_appointment(data['name'], data['phone'], data['date'], data['time'], user_id)
+        
+        # Devolver respuesta con código de estado correcto
+        if result.get('success'):
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        print(f"❌ Error en api_create_appointment: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Error del servidor: {str(e)}"}), 500
 
 @app.route('/api/appointments/<reference>', methods=['GET'])
 def api_get_appointment(reference):
