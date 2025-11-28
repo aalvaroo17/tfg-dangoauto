@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.DangoAuto" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@android:color/holo_blue_dark</item>
-        <item name="colorPrimaryDark">@android:color/holo_blue_dark</item>
-        <item name="colorAccent">@android:color/holo_orange_dark</item>
+    <!-- Tema oscuro elegante -->
+    <style name="Theme.DangoAuto" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/accent_gold</item>
+        <item name="colorPrimaryDark">@color/background_dark</item>
+        <item name="colorAccent">@color/accent_gold</item>
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="android:navigationBarColor">@color/background_dark</item>
     </style>
 </resources>

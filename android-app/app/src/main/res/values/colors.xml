@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#3F51B5</color>
+    <!-- Colores principales oscuros elegantes -->
+    <color name="ic_launcher_background">#0A0A0A</color>
+    <color name="background_dark">#0A0A0A</color>
+    <color name="background_secondary">#141414</color>
+    <color name="background_card">#1A1A1A</color>
+    
+    <!-- Colores de texto -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#E0E0E0</color>
+    <color name="text_hint">#999999</color>
+    
+    <!-- Acento dorado -->
+    <color name="accent_gold">#D4AF37</color>
+    <color name="accent_gold_dark">#B8941F</color>
+    <color name="accent_gold_light">#E5C866</color>
+    
+    <!-- Bordes y divisores -->
+    <color name="border_light">#333333</color>
+    <color name="border_dark">#1A1A1A</color>
+    
+    <!-- Estados -->
+    <color name="error">#DC3545</color>
+    <color name="success">#28A745</color>
 </resources>
