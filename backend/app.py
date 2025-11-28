@@ -176,15 +176,25 @@ class DangoAutoBot:
         if self.use_firestore:
             try:
                 appointments_ref = self.db.collection('appointments')
+                # Consulta: citas en esa fecha y hora que NO estén canceladas
                 query = appointments_ref.where('date', '==', date_str)\
                                        .where('time', '==', time_str)\
                                        .where('status', '!=', 'cancelada')\
                                        .limit(1)
-                docs = query.stream()
-                return len(list(docs)) == 0
+                docs = list(query.stream())
+                is_available = len(docs) == 0
+                if not is_available:
+                    print(f"⚠️ Horario ocupado: {date_str} {time_str} (encontradas {len(docs)} citas)")
+                else:
+                    print(f"✓ Horario disponible: {date_str} {time_str}")
+                return is_available
             except Exception as e:
-                print(f"Error verificando disponibilidad en Firestore: {e}")
-                return False
+                print(f"❌ Error verificando disponibilidad en Firestore: {e}")
+                import traceback
+                traceback.print_exc()
+                # Si hay error, asumir que está disponible (más seguro que bloquear todo)
+                print(f"⚠️ Asumiendo horario disponible debido a error: {date_str} {time_str}")
+                return True
         else:
             for apt in self.appointments:
                 if apt['date'] == date_str and apt['time'] == time_str and apt['status'] != 'cancelada':
