@@ -657,55 +657,154 @@ def api_cars_options():
     response.headers.add('Access-Control-Max-Age', '3600')
     return response
 
+def get_default_cars():
+    """Obtener lista de coches por defecto (los mismos que en la web)"""
+    return [
+        {
+            "id": "default_1",
+            "name": "BMW Serie 3",
+            "brand": "BMW",
+            "model": "Serie 3",
+            "price": 35900,
+            "year": 2022,
+            "km": 15000,
+            "fuel": "Diésel",
+            "power": "190 CV",
+            "transmission": "Automático",
+            "description": "Sedán premium con excelente rendimiento y tecnología avanzada. Ideal para ejecutivos que buscan confort y elegancia.",
+            "licensePlate": "",
+            "features": ["GPS", "Asientos de cuero", "Climatizador automático", "Sistema de sonido premium"],
+            "images": ["/static/Imagenes/ImagenBMW.jpg"]
+        },
+        {
+            "id": "default_2",
+            "name": "Audi A4",
+            "brand": "Audi",
+            "model": "A4",
+            "price": 32500,
+            "year": 2021,
+            "km": 22000,
+            "fuel": "Gasolina",
+            "power": "150 CV",
+            "transmission": "Manual",
+            "description": "Elegante berlina con diseño sofisticado y motor eficiente. Perfecto equilibrio entre deportividad y confort.",
+            "licensePlate": "",
+            "features": ["Faros LED", "Tapicería mixta", "Control de crucero", "Conexión Bluetooth"],
+            "images": ["/static/Imagenes/ImagenAudi.webp"]
+        },
+        {
+            "id": "default_3",
+            "name": "Mercedes Clase C",
+            "brand": "Mercedes",
+            "model": "Clase C",
+            "price": 38750,
+            "year": 2023,
+            "km": 8500,
+            "fuel": "Híbrido",
+            "power": "204 CV",
+            "transmission": "Automático",
+            "description": "Lujo y tecnología híbrida en perfecta armonía. Bajo consumo y máximo confort para el conductor exigente.",
+            "licensePlate": "",
+            "features": ["Pantalla táctil 10.25\"", "Asientos eléctricos", "Sistema de navegación", "Cámara trasera"],
+            "images": ["/static/Imagenes/ImagenMercedes.webp"]
+        },
+        {
+            "id": "default_4",
+            "name": "Volkswagen Golf",
+            "brand": "Volkswagen",
+            "model": "Golf",
+            "price": 24300,
+            "year": 2022,
+            "km": 18000,
+            "fuel": "Gasolina",
+            "power": "130 CV",
+            "transmission": "Manual",
+            "description": "El compacto más versátil del mercado. Ideal para ciudad y carretera con excelente relación calidad-precio.",
+            "licensePlate": "",
+            "features": ["Car Play", "Sensores de aparcamiento", "Volante multifunción", "Ordenador de viaje"],
+            "images": ["/static/Imagenes/ImagenGolf.jpeg"]
+        },
+        {
+            "id": "default_5",
+            "name": "Toyota RAV4",
+            "brand": "Toyota",
+            "model": "RAV4",
+            "price": 31200,
+            "year": 2021,
+            "km": 28000,
+            "fuel": "Híbrido",
+            "power": "218 CV",
+            "transmission": "Automático",
+            "description": "SUV híbrido con tracción integral. Perfecto para familias aventureras que buscan eficiencia y espacio.",
+            "licensePlate": "",
+            "features": ["Tracción 4x4", "Cámara 360°", "Techo solar", "Sistema de seguridad Toyota Safety Sense"],
+            "images": ["/static/Imagenes/ImagenToyota.webp"]
+        },
+        {
+            "id": "default_6",
+            "name": "Ford Focus",
+            "brand": "Ford",
+            "model": "Focus",
+            "price": 21800,
+            "year": 2022,
+            "km": 12000,
+            "fuel": "Gasolina",
+            "power": "125 CV",
+            "transmission": "Manual",
+            "description": "Compacto dinámico con tecnología intuitiva. Diseño moderno y conducción ágil para el día a día.",
+            "licensePlate": "",
+            "features": ["SYNC 3", "Control por voz", "Asistente de mantenimiento de carril", "Arranque sin llave"],
+            "images": ["/static/Imagenes/ImagenFord.jpg"]
+        }
+    ]
+
 @app.route('/api/cars', methods=['GET'])
 def api_get_cars():
     """Obtener lista de coches disponibles"""
     try:
+        cars = []
+        
         if db:
+            # Obtener coches de Firestore
             cars_ref = db.collection('cars')
-            docs = cars_ref.stream()
+            docs = list(cars_ref.stream())
             
-            cars = []
             for doc in docs:
                 car_data = doc.to_dict()
                 car_data['id'] = doc.id
                 cars.append(car_data)
             
-            return jsonify({
-                "success": True,
-                "cars": cars,
-                "total": len(cars)
-            }), 200
+            # Si no hay coches en Firestore, añadir los coches por defecto
+            if len(cars) == 0:
+                print("📦 No hay coches en Firestore, usando coches por defecto")
+                default_cars = get_default_cars()
+                cars.extend(default_cars)
+            else:
+                print(f"✓ Coches cargados desde Firestore: {len(cars)}")
         else:
-            # Fallback: devolver coches de ejemplo si no hay Firestore
-            example_cars = [
-                {
-                    "id": "1",
-                    "name": "BMW Serie 3",
-                    "brand": "BMW",
-                    "model": "Serie 3",
-                    "price": 35900,
-                    "year": 2022,
-                    "km": 15000,
-                    "fuel": "Diésel",
-                    "power": "190 CV",
-                    "transmission": "Automático",
-                    "description": "Sedán premium con excelente rendimiento y tecnología avanzada.",
-                    "licensePlate": "",
-                    "features": ["GPS", "Asientos de cuero", "Climatizador automático"],
-                    "images": ["/static/Imagenes/ImagenBMW.jpg"]
-                }
-            ]
-            return jsonify({
-                "success": True,
-                "cars": example_cars,
-                "total": len(example_cars)
-            }), 200
+            # Si no hay Firestore, usar coches por defecto
+            print("⚠️ Firestore no disponible, usando coches por defecto")
+            cars = get_default_cars()
+        
+        return jsonify({
+            "success": True,
+            "cars": cars,
+            "total": len(cars)
+        }), 200
     except Exception as e:
         print(f"❌ Error en api_get_cars: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
+        # En caso de error, devolver coches por defecto
+        try:
+            default_cars = get_default_cars()
+            return jsonify({
+                "success": True,
+                "cars": default_cars,
+                "total": len(default_cars)
+            }), 200
+        except:
+            return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
 
 @app.route('/api/cars', methods=['POST'])
 def api_create_car():

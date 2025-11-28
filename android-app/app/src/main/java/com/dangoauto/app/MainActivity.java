@@ -89,8 +89,8 @@ public class MainActivity extends AppCompatActivity {
                 btnCerrarSesion.setOnClickListener(v -> {
                     try {
                         // Limpiar sesión
-                        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = prefs.edit();
+                        SharedPreferences prefsSession = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefsSession.edit();
                         editor.clear();
                         editor.apply();
                         
