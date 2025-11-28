@@ -659,6 +659,11 @@ def api_cars_options():
 
 def get_default_cars():
     """Obtener lista de coches por defecto (los mismos que en la web)"""
+    # Obtener URL base del backend
+    base_url = os.environ.get('BACKEND_URL', 'https://tfg-dangoauto.onrender.com')
+    if not base_url.startswith('http'):
+        base_url = f'https://{base_url}'
+    
     return [
         {
             "id": "default_1",
@@ -674,7 +679,7 @@ def get_default_cars():
             "description": "Sedán premium con excelente rendimiento y tecnología avanzada. Ideal para ejecutivos que buscan confort y elegancia.",
             "licensePlate": "",
             "features": ["GPS", "Asientos de cuero", "Climatizador automático", "Sistema de sonido premium"],
-            "images": ["/static/Imagenes/ImagenBMW.jpg"]
+            "images": [f"{base_url}/static/Imagenes/ImagenBMW.jpg"]
         },
         {
             "id": "default_2",
@@ -690,7 +695,7 @@ def get_default_cars():
             "description": "Elegante berlina con diseño sofisticado y motor eficiente. Perfecto equilibrio entre deportividad y confort.",
             "licensePlate": "",
             "features": ["Faros LED", "Tapicería mixta", "Control de crucero", "Conexión Bluetooth"],
-            "images": ["/static/Imagenes/ImagenAudi.webp"]
+            "images": [f"{base_url}/static/Imagenes/ImagenAudi.webp"]
         },
         {
             "id": "default_3",
@@ -706,7 +711,7 @@ def get_default_cars():
             "description": "Lujo y tecnología híbrida en perfecta armonía. Bajo consumo y máximo confort para el conductor exigente.",
             "licensePlate": "",
             "features": ["Pantalla táctil 10.25\"", "Asientos eléctricos", "Sistema de navegación", "Cámara trasera"],
-            "images": ["/static/Imagenes/ImagenMercedes.webp"]
+            "images": [f"{base_url}/static/Imagenes/ImagenMercedes.webp"]
         },
         {
             "id": "default_4",
@@ -722,7 +727,7 @@ def get_default_cars():
             "description": "El compacto más versátil del mercado. Ideal para ciudad y carretera con excelente relación calidad-precio.",
             "licensePlate": "",
             "features": ["Car Play", "Sensores de aparcamiento", "Volante multifunción", "Ordenador de viaje"],
-            "images": ["/static/Imagenes/ImagenGolf.jpeg"]
+            "images": [f"{base_url}/static/Imagenes/ImagenGolf.jpeg"]
         },
         {
             "id": "default_5",
@@ -738,7 +743,7 @@ def get_default_cars():
             "description": "SUV híbrido con tracción integral. Perfecto para familias aventureras que buscan eficiencia y espacio.",
             "licensePlate": "",
             "features": ["Tracción 4x4", "Cámara 360°", "Techo solar", "Sistema de seguridad Toyota Safety Sense"],
-            "images": ["/static/Imagenes/ImagenToyota.webp"]
+            "images": [f"{base_url}/static/Imagenes/ImagenToyota.webp"]
         },
         {
             "id": "default_6",
@@ -754,7 +759,7 @@ def get_default_cars():
             "description": "Compacto dinámico con tecnología intuitiva. Diseño moderno y conducción ágil para el día a día.",
             "licensePlate": "",
             "features": ["SYNC 3", "Control por voz", "Asistente de mantenimiento de carril", "Arranque sin llave"],
-            "images": ["/static/Imagenes/ImagenFord.jpg"]
+            "images": [f"{base_url}/static/Imagenes/ImagenFord.jpg"]
         }
     ]
 
@@ -772,19 +777,50 @@ def api_get_cars():
             for doc in docs:
                 car_data = doc.to_dict()
                 car_data['id'] = doc.id
+                # Convertir SERVER_TIMESTAMP a string si existe
+                if 'created_at' in car_data:
+                    try:
+                        if hasattr(car_data['created_at'], 'timestamp'):
+                            car_data['created_at'] = car_data['created_at'].timestamp()
+                    except:
+                        pass
+                # Asegurar que las imágenes tengan URLs completas si son relativas
+                if 'images' in car_data and isinstance(car_data['images'], list):
+                    base_url = os.environ.get('BACKEND_URL', 'https://tfg-dangoauto.onrender.com')
+                    if not base_url.startswith('http'):
+                        base_url = f'https://{base_url}'
+                    car_data['images'] = [
+                        img if img.startswith('http') else f"{base_url}{img if img.startswith('/') else '/' + img}"
+                        for img in car_data['images']
+                    ]
                 cars.append(car_data)
             
-            # Si no hay coches en Firestore, añadir los coches por defecto
-            if len(cars) == 0:
-                print("📦 No hay coches en Firestore, usando coches por defecto")
-                default_cars = get_default_cars()
-                cars.extend(default_cars)
-            else:
-                print(f"✓ Coches cargados desde Firestore: {len(cars)}")
+            # IMPORTANTE: Siempre añadir los coches por defecto (además de los de Firestore)
+            # Los coches por defecto deben estar SIEMPRE presentes, independientemente de cuántos coches haya en Firestore
+            default_cars = get_default_cars()
+            
+            # Añadir los coches por defecto a la lista (siempre se añaden, no se reemplazan)
+            cars.extend(default_cars)
+            
+            print(f"✓ Coches cargados: {len(docs)} de Firestore + {len(default_cars)} por defecto = {len(cars)} total")
+            print(f"  - IDs Firestore: {[doc.id for doc in docs]}")
+            print(f"  - IDs por defecto: {[car['id'] for car in default_cars]}")
+            print(f"  - Total final: {len(cars)} coches")
         else:
             # Si no hay Firestore, usar coches por defecto
             print("⚠️ Firestore no disponible, usando coches por defecto")
             cars = get_default_cars()
+        
+        # Verificación final: asegurar que siempre hay coches por defecto
+        default_car_ids = {car.get('id') for car in get_default_cars()}
+        present_default_ids = {car.get('id') for car in cars if car.get('id') in default_car_ids}
+        
+        if len(present_default_ids) < len(default_car_ids):
+            print(f"⚠️ ADVERTENCIA: Faltan coches por defecto. Esperados: {len(default_car_ids)}, Presentes: {len(present_default_ids)}")
+            # Añadir los que faltan
+            missing_defaults = [car for car in get_default_cars() if car.get('id') not in present_default_ids]
+            cars.extend(missing_defaults)
+            print(f"✓ Añadidos {len(missing_defaults)} coches por defecto que faltaban")
         
         return jsonify({
             "success": True,
@@ -850,13 +886,35 @@ def api_create_car():
             doc_ref = cars_ref.document()
             doc_ref.set(car_data)
             
-            car_data['id'] = doc_ref.id
+            # Preparar respuesta sin SERVER_TIMESTAMP (no serializable a JSON)
+            response_data = {
+                "id": doc_ref.id,
+                "name": car_data['name'],
+                "brand": car_data['brand'],
+                "model": car_data['model'],
+                "price": car_data['price'],
+                "year": car_data['year'],
+                "km": car_data['km'],
+                "fuel": car_data['fuel'],
+                "power": car_data['power'],
+                "transmission": car_data['transmission'],
+                "description": car_data['description'],
+                "licensePlate": car_data['licensePlate'],
+                "images": car_data['images'],
+                "features": car_data['features'],
+                "sellerDni": car_data['sellerDni'],
+                "sellerPhone": car_data['sellerPhone'],
+                "sellerEmail": car_data['sellerEmail'],
+                "status": car_data['status'],
+                "created_at": datetime.now().isoformat()  # Usar timestamp actual en lugar de SERVER_TIMESTAMP
+            }
+            
             print(f"✓ Coche guardado en Firestore: {car_data['name']} (ID: {doc_ref.id})")
             
             return jsonify({
                 "success": True,
                 "message": "Coche registrado exitosamente",
-                "car": car_data
+                "car": response_data
             }), 200
         else:
             return jsonify({"success": False, "message": "Servicio no disponible"}), 503
