@@ -21,29 +21,35 @@ public class SearchActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search);
+        
+        try {
+            setContentView(R.layout.activity_search);
 
-        // No configuramos ActionBar porque usamos tema NoActionBar
-        // El título y navegación se pueden añadir en el layout si es necesario
+            // Inicializar lista de coches de ejemplo
+            carList = new ArrayList<>();
+            carList.add("Ford Focus 2020");
+            carList.add("Seat León 2023");
+            carList.add("BMW Serie 3 2021");
+            carList.add("Audi A4 2022");
+            carList.add("Mercedes Clase C 2023");
+            carList.add("Toyota Corolla 2021");
+            carList.add("Volkswagen Golf 2022");
+            carList.add("Peugeot 308 2020");
 
-        // Inicializar lista de coches de ejemplo
-        carList = new ArrayList<>();
-        carList.add("Ford Focus 2020");
-        carList.add("Seat León 2023");
-        carList.add("BMW Serie 3 2021");
-        carList.add("Audi A4 2022");
-        carList.add("Mercedes Clase C 2023");
-        carList.add("Toyota Corolla 2021");
-        carList.add("Volkswagen Golf 2022");
-        carList.add("Peugeot 308 2020");
+            filteredCarList = new ArrayList<>(carList);
 
-        filteredCarList = new ArrayList<>(carList);
-
-        // Configurar RecyclerView
-        recyclerView = findViewById(R.id.recyclerViewCars);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        carAdapter = new CarAdapter(filteredCarList);
-        recyclerView.setAdapter(carAdapter);
+            // Configurar RecyclerView
+            recyclerView = findViewById(R.id.recyclerViewCars);
+            if (recyclerView != null) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                carAdapter = new CarAdapter(filteredCarList);
+                recyclerView.setAdapter(carAdapter);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("SearchActivity", "Error crítico en onCreate", e);
+            Toast.makeText(this, "Error al cargar la pantalla", Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     @Override

@@ -53,7 +53,7 @@ except Exception as e:
 app = Flask(__name__, static_folder=None)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Desactivar caché para desarrollo
 
-# Configurar CORS para producción (Firebase) y desarrollo local
+# Configurar CORS para producción (Firebase), desarrollo local y apps móviles
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -62,10 +62,11 @@ CORS(app, resources={
             "https://tfg-front.web.app",
             "https://tfg-front.firebaseapp.com",
             "http://localhost:5000",
-            "http://127.0.0.1:5000"
+            "http://127.0.0.1:5000",
+            "*"  # Permitir apps móviles (Android/iOS no tienen origen específico)
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
+        "allow_headers": ["Content-Type", "Authorization", "Accept"],
         "supports_credentials": True,
         "expose_headers": ["Content-Type"]
     }
@@ -74,9 +75,16 @@ CORS(app, resources={
 # Manejar preflight OPTIONS explícitamente
 @app.after_request
 def after_request(response):
+    # Permitir CORS para apps móviles también
+    origin = request.headers.get('Origin')
+    if origin:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    else:
+        # Si no hay Origin (apps móviles), permitir desde cualquier origen
+        response.headers.add('Access-Control-Allow-Origin', '*')
+    
     if request.method == 'OPTIONS':
-        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
         response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         response.headers.add('Access-Control-Max-Age', '3600')
     return response
@@ -510,12 +518,31 @@ def api_cancel_appointment(reference):
     return jsonify(result), 200 if result['success'] else 404
 
 # --- Endpoints de Autenticación ---
+@app.route('/api/auth/register', methods=['OPTIONS'])
+@app.route('/api/auth/login', methods=['OPTIONS'])
+def api_auth_options():
+    """Manejar peticiones OPTIONS (preflight) para CORS en autenticación"""
+    response = jsonify({})
+    origin = request.headers.get('Origin')
+    if origin:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    else:
+        response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+    response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    response.headers.add('Access-Control-Max-Age', '3600')
+    return response
+
 @app.route('/api/auth/register', methods=['POST'])
 def api_register():
     """Registrar nuevo usuario"""
     try:
+        print(f"📝 Registro recibido desde: {request.remote_addr}")
+        print(f"📝 Headers: {dict(request.headers)}")
+        
         data = request.get_json()
         if not data:
+            print("❌ No se recibieron datos JSON")
             return jsonify({"success": False, "message": "No se recibieron datos"}), 400
         
         username = data.get('username', '').strip()
@@ -562,8 +589,12 @@ def api_register():
 def api_login():
     """Iniciar sesión"""
     try:
+        print(f"🔐 Login recibido desde: {request.remote_addr}")
+        print(f"🔐 Headers: {dict(request.headers)}")
+        
         data = request.get_json()
         if not data:
+            print("❌ No se recibieron datos JSON")
             return jsonify({"success": False, "message": "No se recibieron datos"}), 400
         
         username = data.get('username', '').strip()
@@ -685,11 +716,11 @@ def download_android_app():
                 response = send_file(
                     file_path,
                     as_attachment=True,
-                    download_name='DangoAuto.apk',
+                    download_name='dangoAuto.apk',
                     mimetype='application/vnd.android.package-archive'
                 )
                 # Headers adicionales para asegurar descarga en móviles
-                response.headers['Content-Disposition'] = 'attachment; filename="DangoAuto.apk"'
+                response.headers['Content-Disposition'] = 'attachment; filename="dangoAuto.apk"'
                 response.headers['Content-Type'] = 'application/vnd.android.package-archive'
                 response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
                 response.headers['Pragma'] = 'no-cache'

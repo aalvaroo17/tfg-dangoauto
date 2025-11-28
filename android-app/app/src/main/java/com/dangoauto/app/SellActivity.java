@@ -16,45 +16,61 @@ public class SellActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sell);
+        
+        try {
+            setContentView(R.layout.activity_sell);
 
-        // No configuramos ActionBar porque usamos tema NoActionBar
-        // El título ya está en el layout
+            // Inicializar vistas
+            editTextDni = findViewById(R.id.editTextDni);
+            editTextTelefono = findViewById(R.id.editTextTelefono);
+            editTextEmail = findViewById(R.id.editTextEmail);
+            btnSubirInfo = findViewById(R.id.btnSubirInfo);
 
-        // Inicializar vistas
-        editTextDni = findViewById(R.id.editTextDni);
-        editTextTelefono = findViewById(R.id.editTextTelefono);
-        editTextEmail = findViewById(R.id.editTextEmail);
-        btnSubirInfo = findViewById(R.id.btnSubirInfo);
-
-        // Configurar listener del botón
-        btnSubirInfo.setOnClickListener(v -> {
-            if (validateFields()) {
-                // Por ahora solo muestra un Toast de confirmación
-                Toast.makeText(SellActivity.this, 
-                    getString(R.string.info_subida), 
-                    Toast.LENGTH_SHORT).show();
-                
-                // Limpiar campos después de enviar
-                editTextDni.setText("");
-                editTextTelefono.setText("");
-                editTextEmail.setText("");
-            } else {
-                Toast.makeText(SellActivity.this, 
-                    getString(R.string.campos_vacios), 
-                    Toast.LENGTH_SHORT).show();
+            // Configurar listener del botón
+            if (btnSubirInfo != null) {
+                btnSubirInfo.setOnClickListener(v -> {
+                    try {
+                        if (validateFields()) {
+                            // Por ahora solo muestra un Toast de confirmación
+                            Toast.makeText(SellActivity.this, 
+                                getString(R.string.info_subida), 
+                                Toast.LENGTH_SHORT).show();
+                            
+                            // Limpiar campos después de enviar
+                            if (editTextDni != null) editTextDni.setText("");
+                            if (editTextTelefono != null) editTextTelefono.setText("");
+                            if (editTextEmail != null) editTextEmail.setText("");
+                        } else {
+                            Toast.makeText(SellActivity.this, 
+                                getString(R.string.campos_vacios), 
+                                Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("SellActivity", "Error en onClick", e);
+                        Toast.makeText(SellActivity.this, "Error al procesar", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
-        });
+        } catch (Exception e) {
+            android.util.Log.e("SellActivity", "Error crítico en onCreate", e);
+            Toast.makeText(this, "Error al cargar la pantalla", Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     // Navegación de vuelta se maneja con el botón de sistema o programáticamente
 
     private boolean validateFields() {
-        String dni = editTextDni.getText().toString().trim();
-        String telefono = editTextTelefono.getText().toString().trim();
-        String email = editTextEmail.getText().toString().trim();
+        try {
+            String dni = editTextDni != null ? editTextDni.getText().toString().trim() : "";
+            String telefono = editTextTelefono != null ? editTextTelefono.getText().toString().trim() : "";
+            String email = editTextEmail != null ? editTextEmail.getText().toString().trim() : "";
 
-        return !dni.isEmpty() && !telefono.isEmpty() && !email.isEmpty();
+            return !dni.isEmpty() && !telefono.isEmpty() && !email.isEmpty();
+        } catch (Exception e) {
+            android.util.Log.e("SellActivity", "Error en validateFields", e);
+            return false;
+        }
     }
 }
 

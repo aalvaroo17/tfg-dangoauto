@@ -24,10 +24,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         
         try {
-            // Establecer el tema antes de setContentView
-            setTheme(R.style.Theme_DangoAuto);
-            
-            // Verificar si hay sesión
+            // Verificar si hay sesión ANTES de cargar la vista
             SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             String username = prefs.getString(KEY_USERNAME, null);
             
@@ -60,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
                         Intent intent = new Intent(MainActivity.this, SearchActivity.class);
                         startActivity(intent);
                     } catch (Exception e) {
-                        android.util.Log.e("MainActivity", "Error abriendo SearchActivity: " + e.getMessage(), e);
+                        android.util.Log.e("MainActivity", "Error abriendo SearchActivity", e);
                         Toast.makeText(MainActivity.this, "Error al abrir búsqueda", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -72,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                         Intent intent = new Intent(MainActivity.this, SellActivity.class);
                         startActivity(intent);
                     } catch (Exception e) {
-                        android.util.Log.e("MainActivity", "Error abriendo SellActivity: " + e.getMessage(), e);
+                        android.util.Log.e("MainActivity", "Error abriendo SellActivity", e);
                         Toast.makeText(MainActivity.this, "Error al abrir venta", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -80,17 +77,15 @@ public class MainActivity extends AppCompatActivity {
 
             if (btnComprarCoche != null) {
                 btnComprarCoche.setOnClickListener(v -> {
-                    // Por ahora solo muestra un mensaje, se implementará más adelante
                     Toast.makeText(MainActivity.this, 
                         "Funcionalidad de Asistente IA próximamente", 
                         Toast.LENGTH_SHORT).show();
                 });
             }
         } catch (Exception e) {
-            android.util.Log.e("MainActivity", "Error en onCreate: " + e.getMessage(), e);
+            android.util.Log.e("MainActivity", "Error crítico en onCreate", e);
             Toast.makeText(this, "Error al cargar la aplicación", Toast.LENGTH_LONG).show();
             finish();
         }
     }
 }
-
