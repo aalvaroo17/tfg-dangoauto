@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DangoAuto</string>
+    <string name="app_name_full">DangoAuto - Tu Concesionario</string>
+    <string name="app_description">Tu concesionario de confianza</string>
     <string name="btn_buscar_filtrar">Buscar / Filtrar</string>
     <string name="btn_vender_coche">Vender Coche</string>
     <string name="btn_comprar_coche">Comprar Coche (Asistente IA)</string>

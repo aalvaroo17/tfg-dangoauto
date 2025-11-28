@@ -18,11 +18,8 @@ public class SellActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sell);
 
-        // Configurar toolbar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Vender Coche");
-        }
+        // No configuramos ActionBar porque usamos tema NoActionBar
+        // El título ya está en el layout
 
         // Inicializar vistas
         editTextDni = findViewById(R.id.editTextDni);
@@ -50,11 +47,7 @@ public class SellActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        finish();
-        return true;
-    }
+    // Navegación de vuelta se maneja con el botón de sistema o programáticamente
 
     private boolean validateFields() {
         String dni = editTextDni.getText().toString().trim();

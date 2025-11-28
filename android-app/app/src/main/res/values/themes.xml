@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Tema oscuro elegante -->
-    <style name="Theme.DangoAuto" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.DangoAuto" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/accent_gold</item>
         <item name="colorPrimaryDark">@color/background_dark</item>
         <item name="colorAccent">@color/accent_gold</item>
@@ -10,5 +10,8 @@
         <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="android:statusBarColor">@color/background_dark</item>
         <item name="android:navigationBarColor">@color/background_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
     </style>
 </resources>

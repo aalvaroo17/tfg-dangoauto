@@ -8,6 +8,10 @@
     ],
     "rewrites": [
       {
+        "source": "/download/android-app",
+        "function": "app"
+      },
+      {
         "source": "/app",
         "destination": "/app.html"
       },

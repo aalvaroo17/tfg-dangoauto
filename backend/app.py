@@ -509,6 +509,101 @@ def api_cancel_appointment(reference):
     result = bot.cancel_appointment(reference)
     return jsonify(result), 200 if result['success'] else 404
 
+# --- Endpoints de Autenticación ---
+@app.route('/api/auth/register', methods=['POST'])
+def api_register():
+    """Registrar nuevo usuario"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "No se recibieron datos"}), 400
+        
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        email = data.get('email', '').strip()
+        
+        if not username or not password:
+            return jsonify({"success": False, "message": "Usuario y contraseña son requeridos"}), 400
+        
+        if db:
+            # Verificar si el usuario ya existe en Firestore
+            users_ref = db.collection('users')
+            existing_user = users_ref.where('username', '==', username).limit(1).stream()
+            if list(existing_user):
+                return jsonify({"success": False, "message": "El usuario ya existe"}), 400
+            
+            # Crear nuevo usuario en Firestore
+            user_data = {
+                "username": username,
+                "password": password,  # En producción, debería estar hasheado
+                "email": email,
+                "created_at": firestore.SERVER_TIMESTAMP
+            }
+            doc_ref = users_ref.document()
+            doc_ref.set(user_data)
+            
+            return jsonify({
+                "success": True,
+                "message": "Usuario registrado exitosamente",
+                "user": {
+                    "username": username,
+                    "email": email
+                }
+            }), 200
+        else:
+            return jsonify({"success": False, "message": "Servicio no disponible"}), 503
+    except Exception as e:
+        print(f"❌ Error en api_register: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """Iniciar sesión"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "No se recibieron datos"}), 400
+        
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not username or not password:
+            return jsonify({"success": False, "message": "Usuario y contraseña son requeridos"}), 400
+        
+        if db:
+            # Buscar usuario en Firestore
+            users_ref = db.collection('users')
+            query = users_ref.where('username', '==', username).limit(1)
+            docs = list(query.stream())
+            
+            if not docs:
+                return jsonify({"success": False, "message": "Usuario o contraseña incorrectos"}), 401
+            
+            user_doc = docs[0]
+            user_data = user_doc.to_dict()
+            
+            # Verificar contraseña (en producción, debería comparar hash)
+            if user_data.get('password') != password:
+                return jsonify({"success": False, "message": "Usuario o contraseña incorrectos"}), 401
+            
+            return jsonify({
+                "success": True,
+                "message": "Login exitoso",
+                "user": {
+                    "username": user_data.get('username'),
+                    "email": user_data.get('email', '')
+                }
+            }), 200
+        else:
+            return jsonify({"success": False, "message": "Servicio no disponible"}), 503
+    except Exception as e:
+        print(f"❌ Error en api_login: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
+
 @app.route('/api/available-slots', methods=['GET'])
 def api_available_slots():
     date_str = request.args.get('date')
@@ -587,12 +682,19 @@ def download_android_app():
                 filename = os.path.basename(file_path)
                 print(f"  ✓ Encontrado: {filename}")
                 
-                return send_file(
+                response = send_file(
                     file_path,
                     as_attachment=True,
                     download_name='DangoAuto.apk',
                     mimetype='application/vnd.android.package-archive'
                 )
+                # Headers adicionales para asegurar descarga en móviles
+                response.headers['Content-Disposition'] = 'attachment; filename="DangoAuto.apk"'
+                response.headers['Content-Type'] = 'application/vnd.android.package-archive'
+                response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                response.headers['Pragma'] = 'no-cache'
+                response.headers['Expires'] = '0'
+                return response
             except Exception as e:
                 print(f"Error al servir APK: {e}")
                 return Response(

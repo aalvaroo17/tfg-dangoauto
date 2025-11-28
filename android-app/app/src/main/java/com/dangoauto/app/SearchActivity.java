@@ -23,11 +23,8 @@ public class SearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-        // Configurar toolbar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Buscar Coches");
-        }
+        // No configuramos ActionBar porque usamos tema NoActionBar
+        // El título y navegación se pueden añadir en el layout si es necesario
 
         // Inicializar lista de coches de ejemplo
         carList = new ArrayList<>();
@@ -51,40 +48,13 @@ public class SearchActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.search_menu, menu);
-
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                filterCars(query);
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filterCars(newText);
-                return false;
-            }
-        });
-
-        MenuItem filterItem = menu.findItem(R.id.action_filter);
-        filterItem.setOnMenuItemClickListener(item -> {
-            showFilterDialog();
-            return true;
-        });
-
-        return true;
+        // Menú deshabilitado por ahora ya que no hay ActionBar
+        // Se puede implementar con un Toolbar personalizado más adelante
+        return false;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 

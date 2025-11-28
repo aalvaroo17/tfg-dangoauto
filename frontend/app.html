@@ -834,35 +834,93 @@
             document.getElementById('authError').style.display = 'none';
         }
 
-        function handleAuth(e) {
+        async function handleAuth(e) {
             e.preventDefault();
-            const username = document.getElementById('authUsername').value;
+            const username = document.getElementById('authUsername').value.trim();
             const password = document.getElementById('authPassword').value;
-            const email = document.getElementById('authEmail').value;
+            const email = document.getElementById('authEmail').value.trim();
             const errorDiv = document.getElementById('authError');
 
-            const users = JSON.parse(localStorage.getItem('users'));
-
-            if (isRegisterMode) {
-                if (users[username]) {
-                    errorDiv.textContent = 'El usuario ya existe';
-                    errorDiv.style.display = 'block';
-                    return;
+            try {
+                const apiUrl = window.API_BASE_URL || '';
+                
+                if (isRegisterMode) {
+                    if (!email) {
+                        errorDiv.textContent = 'El email es requerido para registrarse';
+                        errorDiv.style.display = 'block';
+                        return;
+                    }
+                    
+                    const response = await fetch(`${apiUrl}/api/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password, email })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Guardar también en localStorage como fallback
+                        const users = JSON.parse(localStorage.getItem('users') || '{}');
+                        users[username] = { username, password, email };
+                        localStorage.setItem('users', JSON.stringify(users));
+                        
+                        currentUser = result.user;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        showApp();
+                    } else {
+                        errorDiv.textContent = result.message || 'Error al registrar';
+                        errorDiv.style.display = 'block';
+                    }
+                } else {
+                    const response = await fetch(`${apiUrl}/api/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Guardar también en localStorage como fallback
+                        const users = JSON.parse(localStorage.getItem('users') || '{}');
+                        users[username] = { username, password, email: result.user.email };
+                        localStorage.setItem('users', JSON.stringify(users));
+                        
+                        currentUser = result.user;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        showApp();
+                    } else {
+                        errorDiv.textContent = result.message || 'Error al iniciar sesión';
+                        errorDiv.style.display = 'block';
+                    }
                 }
-                users[username] = { username, password, email };
-                localStorage.setItem('users', JSON.stringify(users));
-                currentUser = { username, email };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showApp();
-            } else {
-                if (!users[username] || users[username].password !== password) {
-                    errorDiv.textContent = 'Usuario o contraseña incorrectos';
-                    errorDiv.style.display = 'block';
-                    return;
+            } catch (err) {
+                console.error('Error de conexión:', err);
+                // Fallback a localStorage si la API no está disponible
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                
+                if (isRegisterMode) {
+                    if (users[username]) {
+                        errorDiv.textContent = 'El usuario ya existe';
+                        errorDiv.style.display = 'block';
+                        return;
+                    }
+                    users[username] = { username, password, email };
+                    localStorage.setItem('users', JSON.stringify(users));
+                    currentUser = { username, email };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showApp();
+                } else {
+                    if (!users[username] || users[username].password !== password) {
+                        errorDiv.textContent = 'Usuario o contraseña incorrectos';
+                        errorDiv.style.display = 'block';
+                        return;
+                    }
+                    currentUser = { username, email: users[username].email };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showApp();
                 }
-                currentUser = { username, email: users[username].email };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showApp();
             }
         }
 
