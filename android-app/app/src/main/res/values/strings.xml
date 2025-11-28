@@ -20,6 +20,7 @@
     <string name="kilometros">Kilómetros</string>
     <string name="combustible">Combustible</string>
     <string name="descripcion">Descripción</string>
+    <string name="caracteristicas">Características (separadas por comas)</string>
     <string name="precio">Precio (€)</string>
     <string name="año">Año</string>
     <string name="potencia">Potencia (CV)</string>

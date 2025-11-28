@@ -248,6 +248,28 @@
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutCaracteristicas"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/caracteristicas"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutDescripcion"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:hintTextColor="@color/accent_gold"
+            app:boxStrokeColor="@color/accent_gold">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextCaracteristicas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="2"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <Button
             android:id="@+id/btnSeleccionarFotos"
             android:layout_width="0dp"
@@ -258,7 +280,7 @@
             android:backgroundTint="@color/accent_gold"
             android:textColor="@color/background_dark"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutDescripcion"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutCaracteristicas"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="16dp" />

@@ -21,6 +21,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.content.ContentResolver;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import android.util.Base64;
 
 public class SellActivity extends AppCompatActivity {
 
@@ -37,6 +43,7 @@ public class SellActivity extends AppCompatActivity {
     private TextInputEditText editTextPrecio;
     private TextInputEditText editTextAño;
     private TextInputEditText editTextDescripcion;
+    private TextInputEditText editTextCaracteristicas;
     private Button btnSeleccionarFotos;
     private Button btnSubirInfo;
     private RecyclerView recyclerViewFotos;
@@ -72,6 +79,7 @@ public class SellActivity extends AppCompatActivity {
             editTextPrecio = findViewById(R.id.editTextPrecio);
             editTextAño = findViewById(R.id.editTextAño);
             editTextDescripcion = findViewById(R.id.editTextDescripcion);
+            editTextCaracteristicas = findViewById(R.id.editTextCaracteristicas);
             btnSeleccionarFotos = findViewById(R.id.btnSeleccionarFotos);
             btnSubirInfo = findViewById(R.id.btnSubirInfo);
             recyclerViewFotos = findViewById(R.id.recyclerViewFotos);
@@ -190,14 +198,38 @@ public class SellActivity extends AppCompatActivity {
                     carJson.put("licensePlate", editTextMatricula.getText().toString().trim());
                     carJson.put("description", editTextDescripcion.getText().toString().trim());
                     
+                    // Características (convertir string separado por comas a array)
+                    String caracteristicasStr = editTextCaracteristicas.getText().toString().trim();
+                    JSONArray featuresArray = new JSONArray();
+                    if (!caracteristicasStr.isEmpty()) {
+                        String[] features = caracteristicasStr.split(",");
+                        for (String feature : features) {
+                            String trimmed = feature.trim();
+                            if (!trimmed.isEmpty()) {
+                                featuresArray.put(trimmed);
+                            }
+                        }
+                    }
+                    carJson.put("features", featuresArray);
+                    
                     // Datos del vendedor
                     carJson.put("sellerDni", editTextDni.getText().toString().trim());
                     carJson.put("sellerPhone", editTextTelefono.getText().toString().trim());
                     carJson.put("sellerEmail", editTextEmail.getText().toString().trim());
                     
-                    // Imágenes (por ahora como array vacío, se puede implementar subida después)
+                    // Convertir imágenes a base64 y añadirlas al array
                     JSONArray imagesArray = new JSONArray();
-                    // TODO: Implementar subida de imágenes al servidor
+                    for (Uri imageUri : selectedImages) {
+                        try {
+                            String base64Image = convertImageToBase64(imageUri);
+                            if (base64Image != null && !base64Image.isEmpty()) {
+                                // Enviar como data URL para que el backend pueda procesarlo
+                                imagesArray.put("data:image/jpeg;base64," + base64Image);
+                            }
+                        } catch (Exception e) {
+                            android.util.Log.e("SellActivity", "Error convirtiendo imagen a base64", e);
+                        }
+                    }
                     carJson.put("images", imagesArray);
 
                     RequestBody body = RequestBody.create(
@@ -270,7 +302,53 @@ public class SellActivity extends AppCompatActivity {
         if (editTextPrecio != null) editTextPrecio.setText("");
         if (editTextAño != null) editTextAño.setText("");
         if (editTextDescripcion != null) editTextDescripcion.setText("");
+        if (editTextCaracteristicas != null) editTextCaracteristicas.setText("");
         selectedImages.clear();
+    }
+    
+    /**
+     * Convierte una URI de imagen a base64
+     */
+    private String convertImageToBase64(Uri imageUri) {
+        try {
+            ContentResolver contentResolver = getContentResolver();
+            InputStream inputStream = contentResolver.openInputStream(imageUri);
+            
+            if (inputStream == null) {
+                return null;
+            }
+            
+            // Leer la imagen y redimensionarla si es muy grande (máximo 1024x1024)
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+            
+            if (bitmap == null) {
+                return null;
+            }
+            
+            // Redimensionar si es necesario (máximo 1024px en el lado más largo)
+            int maxSize = 1024;
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            
+            if (width > maxSize || height > maxSize) {
+                float scale = Math.min((float) maxSize / width, (float) maxSize / height);
+                int newWidth = Math.round(width * scale);
+                int newHeight = Math.round(height * scale);
+                bitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+            }
+            
+            // Comprimir a JPEG con calidad 85%
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream);
+            byte[] imageBytes = outputStream.toByteArray();
+            
+            // Convertir a base64
+            return Base64.encodeToString(imageBytes, Base64.NO_WRAP);
+        } catch (Exception e) {
+            android.util.Log.e("SellActivity", "Error convirtiendo imagen", e);
+            return null;
+        }
     }
 
     @Override

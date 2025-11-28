@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timedelta
 import re
 import uuid
+import base64
 
 # Firebase Admin SDK
 import firebase_admin
@@ -842,6 +843,56 @@ def api_get_cars():
         except:
             return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
 
+def process_base64_images(images_data):
+    """Procesa imágenes en base64 y las guarda en el servidor"""
+    saved_images = []
+    
+    # Crear directorio para uploads si no existe
+    uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'static', 'uploads')
+    os.makedirs(uploads_dir, exist_ok=True)
+    
+    base_url = os.environ.get('BACKEND_URL', 'https://tfg-dangoauto.onrender.com')
+    if not base_url.startswith('http'):
+        base_url = f'https://{base_url}'
+    
+    for idx, image_data in enumerate(images_data):
+        try:
+            # Si ya es una URL, mantenerla
+            if isinstance(image_data, str) and image_data.startswith('http'):
+                saved_images.append(image_data)
+                continue
+            
+            # Procesar base64 (formato: data:image/jpeg;base64,... o solo base64)
+            base64_string = image_data
+            if isinstance(image_data, str) and ',' in image_data:
+                # Formato data:image/jpeg;base64,...
+                base64_string = image_data.split(',')[1]
+            
+            # Decodificar base64
+            image_bytes = base64.b64decode(base64_string)
+            
+            # Generar nombre único para el archivo
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"car_{timestamp}_{idx}.jpg"
+            filepath = os.path.join(uploads_dir, filename)
+            
+            # Guardar archivo
+            with open(filepath, 'wb') as f:
+                f.write(image_bytes)
+            
+            # Construir URL completa
+            image_url = f"{base_url}/static/uploads/{filename}"
+            saved_images.append(image_url)
+            print(f"✓ Imagen guardada: {filename}")
+            
+        except Exception as e:
+            print(f"⚠️ Error procesando imagen {idx}: {e}")
+            # Si hay error, intentar mantener la URL original si existe
+            if isinstance(image_data, str):
+                saved_images.append(image_data)
+    
+    return saved_images
+
 @app.route('/api/cars', methods=['POST'])
 def api_create_car():
     """Crear un nuevo coche en venta"""
@@ -859,6 +910,9 @@ def api_create_car():
                 return jsonify({"success": False, "message": f"Campo requerido: {field}"}), 400
         
         if db:
+            # Procesar imágenes base64 y guardarlas
+            processed_images = process_base64_images(data.get('images', []))
+            
             # Preparar datos del coche
             car_data = {
                 "name": data.get('name', '').strip(),
@@ -872,8 +926,8 @@ def api_create_car():
                 "transmission": data.get('transmission', '').strip(),
                 "description": data.get('description', '').strip(),
                 "licensePlate": data.get('licensePlate', '').strip(),
-                "images": data.get('images', []),
                 "features": data.get('features', []),
+                "images": processed_images,
                 "sellerDni": data.get('sellerDni', '').strip(),
                 "sellerPhone": data.get('sellerPhone', '').strip(),
                 "sellerEmail": data.get('sellerEmail', '').strip(),
