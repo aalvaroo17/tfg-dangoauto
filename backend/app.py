@@ -971,6 +971,16 @@ def serve_static(filename):
         print(f"   Buscado en: {static_dir}")
         print(f"   Filename recibido: {filename}")
         print(f"   Ruta completa: {file_path}")
+        
+        # Si es una imagen de uploads que no existe, devolver una imagen placeholder en lugar de 404
+        if filename.startswith('uploads/') and filename.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
+            print(f"   ⚠️ Imagen de uploads no encontrada (puede haberse perdido en reinicio del servidor)")
+            # Intentar servir una imagen placeholder por defecto
+            placeholder_path = os.path.join(static_dir, 'Imagenes', 'ImagenBMW.jpg')
+            if os.path.exists(placeholder_path):
+                print(f"   ✓ Sirviendo imagen placeholder: {placeholder_path}")
+                return send_from_directory(os.path.dirname(placeholder_path), 'ImagenBMW.jpg')
+        
         abort(404)
     
     print(f"✓ Sirviendo archivo estático: {filename}")

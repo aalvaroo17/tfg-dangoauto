@@ -63,9 +63,14 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
                     return;
                 }
                 
-                // Crear intent de forma segura
+                // Pasar el objeto Car como Serializable (método más seguro)
                 Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
                 intent.putExtra("car", car);
+                
+                // También pasar el ID como backup
+                if (car.getId() != null) {
+                    intent.putExtra("carId", car.getId());
+                }
                 
                 // Verificar que el contexto sea válido
                 if (v.getContext() != null) {
@@ -78,7 +83,8 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
                 }
             } catch (Exception e) {
                 android.util.Log.e("CarAdapter", "Error al abrir detalles del coche", e);
-                android.widget.Toast.makeText(v.getContext(), "Error al abrir detalles", android.widget.Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                android.widget.Toast.makeText(v.getContext(), "Error al abrir detalles: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
             }
         });
     }
