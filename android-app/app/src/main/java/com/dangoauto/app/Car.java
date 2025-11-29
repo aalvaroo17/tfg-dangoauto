@@ -1,11 +1,14 @@
 package com.dangoauto.app;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Car implements Serializable {
+public class Car {
+    
+    private static final String TAG = "Car";
+    
     private String id;
     private String name;
     private String brand;
@@ -26,32 +29,12 @@ public class Car implements Serializable {
         this.images = new ArrayList<>();
     }
     
-    public Car(String id, String name, String brand, String model, double price, int year, 
-               int km, String fuel, String power, String transmission, String description, 
-               String licensePlate, List<String> features, List<String> images) {
-        this.id = id;
-        this.name = name;
-        this.brand = brand;
-        this.model = model;
-        this.price = price;
-        this.year = year;
-        this.km = km;
-        this.fuel = fuel;
-        this.power = power;
-        this.transmission = transmission;
-        this.description = description;
-        this.licensePlate = licensePlate;
-        this.features = features != null ? features : new ArrayList<>();
-        this.images = images != null ? images : new ArrayList<>();
-    }
-    
     // Constructor desde JSON
     public Car(JSONObject json) {
+        this.features = new ArrayList<>();
+        this.images = new ArrayList<>();
+        
         try {
-            // Asegurar que siempre se inicialicen las listas
-            this.features = new ArrayList<>();
-            this.images = new ArrayList<>();
-            
             this.id = json.optString("id", "");
             this.name = json.optString("name", "");
             this.brand = json.optString("brand", "");
@@ -65,53 +48,41 @@ public class Car implements Serializable {
             this.description = json.optString("description", "");
             this.licensePlate = json.optString("licensePlate", "");
             
-            // Log para debugging
-            android.util.Log.d("Car", "Parseando coche - ID: " + this.id + ", Name: " + this.name);
-            
+            // Parsear features
             if (json.has("features")) {
-                try {
-                    org.json.JSONArray featuresArray = json.getJSONArray("features");
+                JSONArray featuresArray = json.optJSONArray("features");
+                if (featuresArray != null) {
                     for (int i = 0; i < featuresArray.length(); i++) {
                         String feature = featuresArray.optString(i, "");
                         if (!feature.isEmpty()) {
                             this.features.add(feature);
                         }
                     }
-                } catch (Exception e) {
-                    android.util.Log.w("Car", "Error parseando features: " + e.getMessage());
                 }
             }
             
+            // Parsear images
             if (json.has("images")) {
-                try {
-                    org.json.JSONArray imagesArray = json.getJSONArray("images");
+                JSONArray imagesArray = json.optJSONArray("images");
+                if (imagesArray != null) {
                     for (int i = 0; i < imagesArray.length(); i++) {
                         String image = imagesArray.optString(i, "");
                         if (!image.isEmpty()) {
                             this.images.add(image);
                         }
                     }
-                    android.util.Log.d("Car", "Imágenes parseadas: " + this.images.size());
-                } catch (Exception e) {
-                    android.util.Log.w("Car", "Error parseando images: " + e.getMessage());
                 }
             } else if (json.has("image")) {
-                // Compatibilidad con formato antiguo (una sola imagen)
                 String image = json.optString("image", "");
                 if (!image.isEmpty()) {
                     this.images.add(image);
                 }
             }
+            
+            android.util.Log.d(TAG, "Coche parseado: " + getFullName() + " (ID: " + this.id + ")");
+            
         } catch (Exception e) {
-            android.util.Log.e("Car", "Error parseando JSON", e);
-            e.printStackTrace();
-            // Asegurar que las listas estén inicializadas incluso si hay error
-            if (this.features == null) {
-                this.features = new ArrayList<>();
-            }
-            if (this.images == null) {
-                this.images = new ArrayList<>();
-            }
+            android.util.Log.e(TAG, "Error parseando JSON", e);
         }
     }
     
@@ -149,7 +120,7 @@ public class Car implements Serializable {
     
     // Método para obtener precio formateado
     public String getFormattedPrice() {
-        return String.format("%.0f€", price).replaceAll("(\\d)(?=(\\d{3})+(?!\\d))", "$1,");
+        return String.format("%,.0f€", price);
     }
     
     // Método para obtener nombre completo
@@ -157,43 +128,9 @@ public class Car implements Serializable {
         if (brand != null && !brand.isEmpty() && model != null && !model.isEmpty()) {
             return brand + " " + model + " " + year;
         }
-        return name;
-    }
-    
-    // Método para convertir a JSON
-    public JSONObject toJSON() {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("id", id);
-            json.put("name", name);
-            json.put("brand", brand);
-            json.put("model", model);
-            json.put("price", price);
-            json.put("year", year);
-            json.put("km", km);
-            json.put("fuel", fuel);
-            json.put("power", power);
-            json.put("transmission", transmission);
-            json.put("description", description);
-            json.put("licensePlate", licensePlate);
-            
-            org.json.JSONArray featuresArray = new org.json.JSONArray();
-            for (String feature : features) {
-                featuresArray.put(feature);
-            }
-            json.put("features", featuresArray);
-            
-            org.json.JSONArray imagesArray = new org.json.JSONArray();
-            for (String image : images) {
-                imagesArray.put(image);
-            }
-            json.put("images", imagesArray);
-            
-            return json;
-        } catch (Exception e) {
-            android.util.Log.e("Car", "Error convirtiendo a JSON", e);
-            return new JSONObject();
+        if (name != null && !name.isEmpty()) {
+            return name;
         }
+        return "Coche";
     }
 }
-

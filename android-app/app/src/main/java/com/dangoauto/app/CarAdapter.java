@@ -13,6 +13,7 @@ import java.util.List;
 
 public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
 
+    private static final String TAG = "CarAdapter";
     private List<Car> carList;
 
     public CarAdapter(List<Car> carList) {
@@ -31,88 +32,77 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
     public void onBindViewHolder(@NonNull CarViewHolder holder, int position) {
         Car car = carList.get(position);
         
+        if (car == null) {
+            android.util.Log.e(TAG, "Car es null en posición " + position);
+            return;
+        }
+        
         // Nombre
-        holder.textViewCarName.setText(car.getFullName());
+        String fullName = car.getFullName();
+        holder.textViewCarName.setText(fullName != null ? fullName : "Sin nombre");
         
-        // Precio
-        holder.textViewCarPrice.setText(car.getFormattedPrice());
+        // Precio en badge
+        String price = car.getFormattedPrice();
+        holder.textViewCarPrice.setText(price != null ? price : "0€");
         
-        // Especificaciones
-        StringBuilder specs = new StringBuilder();
-        specs.append(car.getYear()).append(" • ");
-        specs.append(String.format("%,d", car.getKm())).append(" km • ");
-        specs.append(car.getFuel());
-        holder.textViewCarSpecs.setText(specs.toString());
+        // Especificaciones individuales
+        if (holder.textViewYear != null) {
+            holder.textViewYear.setText(String.valueOf(car.getYear()));
+        }
+        if (holder.textViewKm != null) {
+            holder.textViewKm.setText(String.format("%,d km", car.getKm()));
+        }
+        if (holder.textViewFuel != null) {
+            holder.textViewFuel.setText(car.getFuel() != null ? car.getFuel() : "N/A");
+        }
+        
+        // Specs oculto (por compatibilidad)
+        if (holder.textViewCarSpecs != null) {
+            StringBuilder specs = new StringBuilder();
+            specs.append(car.getYear()).append(" • ");
+            specs.append(String.format("%,d", car.getKm())).append(" km • ");
+            specs.append(car.getFuel() != null ? car.getFuel() : "");
+            holder.textViewCarSpecs.setText(specs.toString());
+        }
         
         // Imagen
         List<String> images = car.getImages();
-        if (images != null && !images.isEmpty()) {
+        if (images != null && !images.isEmpty() && images.get(0) != null && !images.get(0).isEmpty()) {
             String imageUrl = images.get(0);
             Glide.with(holder.itemView.getContext())
                 .load(imageUrl)
-                .placeholder(R.color.background_card)
-                .error(R.color.background_card)
-                .fallback(R.color.background_card)
+                .placeholder(R.color.background_secondary)
+                .error(R.color.background_secondary)
                 .centerCrop()
                 .into(holder.imageViewCar);
         } else {
-            // Si no hay imágenes, mostrar placeholder
-            holder.imageViewCar.setImageResource(R.color.background_card);
+            holder.imageViewCar.setBackgroundResource(R.color.background_secondary);
         }
         
-        // Click listener con animación y manejo de errores
+        // Click listener - Solo pasar el ID
         holder.itemView.setOnClickListener(v -> {
+            String carId = car.getId();
+            android.util.Log.d(TAG, "Click en coche: " + fullName + " (ID: " + carId + ")");
+            
+            if (carId == null || carId.isEmpty()) {
+                android.util.Log.e(TAG, "El coche no tiene ID válido");
+                android.widget.Toast.makeText(v.getContext(), "Error: Coche sin identificador", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
             try {
-                // Validar que el coche no sea null
-                if (car == null) {
-                    android.util.Log.e("CarAdapter", "Coche es null en onClick");
-                    android.widget.Toast.makeText(v.getContext(), "Error: Coche no disponible", android.widget.Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                
-                String carId = car.getId();
-                android.util.Log.d("CarAdapter", "=== Click en coche ===");
-                android.util.Log.d("CarAdapter", "Nombre: " + car.getFullName());
-                android.util.Log.d("CarAdapter", "ID: " + (carId != null ? carId : "NULL"));
-                
-                // Validar que tenemos un ID válido
-                if (carId == null || carId.isEmpty()) {
-                    android.util.Log.e("CarAdapter", "ERROR: El coche no tiene ID válido");
-                    android.widget.Toast.makeText(v.getContext(), "Error: Coche sin ID. Intenta de nuevo.", android.widget.Toast.LENGTH_LONG).show();
-                    return;
-                }
-                
-                // SIEMPRE pasar el ID primero (método más confiable)
                 Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
-                
-                // Pasar el ID como string (siempre funciona)
                 intent.putExtra("carId", carId);
-                android.util.Log.d("CarAdapter", "✓ ID pasado al intent: " + carId);
+                v.getContext().startActivity(intent);
                 
-                // Intentar pasar el objeto completo como backup (puede fallar en algunos casos)
-                try {
-                    intent.putExtra("car", car);
-                    android.util.Log.d("CarAdapter", "Objeto Car pasado al intent");
-                } catch (Exception serializationException) {
-                    android.util.Log.w("CarAdapter", "No se pudo serializar el objeto Car, usando solo ID: " + serializationException.getMessage());
-                    // Continuar solo con el ID
-                }
-                
-                // Verificar que el contexto sea válido
-                if (v.getContext() != null) {
-                    v.getContext().startActivity(intent);
-                    // Animación de transición
-                    if (v.getContext() instanceof android.app.Activity) {
-                        ((android.app.Activity) v.getContext()).overridePendingTransition(
-                            R.anim.slide_in_right, R.anim.fade_out);
-                    }
-                } else {
-                    android.util.Log.e("CarAdapter", "Context es null");
+                // Animación de transición
+                if (v.getContext() instanceof android.app.Activity) {
+                    ((android.app.Activity) v.getContext()).overridePendingTransition(
+                        R.anim.slide_in_right, R.anim.fade_out);
                 }
             } catch (Exception e) {
-                android.util.Log.e("CarAdapter", "Error crítico al abrir detalles del coche", e);
-                e.printStackTrace();
-                android.widget.Toast.makeText(v.getContext(), "Error al abrir detalles. Intenta de nuevo.", android.widget.Toast.LENGTH_LONG).show();
+                android.util.Log.e(TAG, "Error abriendo detalles", e);
+                android.widget.Toast.makeText(v.getContext(), "Error al abrir detalles", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -127,6 +117,9 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
         TextView textViewCarName;
         TextView textViewCarPrice;
         TextView textViewCarSpecs;
+        TextView textViewYear;
+        TextView textViewKm;
+        TextView textViewFuel;
 
         CarViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -134,6 +127,9 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
             textViewCarName = itemView.findViewById(R.id.textViewCarName);
             textViewCarPrice = itemView.findViewById(R.id.textViewCarPrice);
             textViewCarSpecs = itemView.findViewById(R.id.textViewCarSpecs);
+            textViewYear = itemView.findViewById(R.id.textViewYear);
+            textViewKm = itemView.findViewById(R.id.textViewKm);
+            textViewFuel = itemView.findViewById(R.id.textViewFuel);
         }
     }
 }
