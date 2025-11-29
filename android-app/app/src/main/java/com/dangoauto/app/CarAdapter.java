@@ -71,18 +71,23 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
                 }
                 
                 String carId = car.getId();
-                android.util.Log.d("CarAdapter", "Abriendo detalles del coche: " + car.getFullName() + " (ID: " + carId + ")");
+                android.util.Log.d("CarAdapter", "=== Click en coche ===");
+                android.util.Log.d("CarAdapter", "Nombre: " + car.getFullName());
+                android.util.Log.d("CarAdapter", "ID: " + (carId != null ? carId : "NULL"));
+                
+                // Validar que tenemos un ID válido
+                if (carId == null || carId.isEmpty()) {
+                    android.util.Log.e("CarAdapter", "ERROR: El coche no tiene ID válido");
+                    android.widget.Toast.makeText(v.getContext(), "Error: Coche sin ID. Intenta de nuevo.", android.widget.Toast.LENGTH_LONG).show();
+                    return;
+                }
                 
                 // SIEMPRE pasar el ID primero (método más confiable)
                 Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
                 
                 // Pasar el ID como string (siempre funciona)
-                if (carId != null && !carId.isEmpty()) {
-                    intent.putExtra("carId", carId);
-                    android.util.Log.d("CarAdapter", "ID pasado al intent: " + carId);
-                } else {
-                    android.util.Log.w("CarAdapter", "Advertencia: El coche no tiene ID");
-                }
+                intent.putExtra("carId", carId);
+                android.util.Log.d("CarAdapter", "✓ ID pasado al intent: " + carId);
                 
                 // Intentar pasar el objeto completo como backup (puede fallar en algunos casos)
                 try {

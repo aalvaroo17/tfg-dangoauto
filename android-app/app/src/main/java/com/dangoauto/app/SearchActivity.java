@@ -127,22 +127,36 @@ public class SearchActivity extends AppCompatActivity {
                                 carList.clear();
                                 
                                 for (int i = 0; i < carsArray.length(); i++) {
-                                    JSONObject carJson = carsArray.getJSONObject(i);
-                                    Car car = new Car(carJson);
-                                    
-                                    // Asegurar que el ID esté presente (puede venir del documento de Firestore)
-                                    String carId = carJson.optString("id", "");
-                                    if (carId.isEmpty() && car.getId() == null) {
-                                        // Si no hay ID, generar uno temporal o usar el índice
-                                        android.util.Log.w("SearchActivity", "Coche sin ID, usando índice temporal");
-                                        carId = "temp_" + i;
+                                    try {
+                                        JSONObject carJson = carsArray.getJSONObject(i);
+                                        Car car = new Car(carJson);
+                                        
+                                        // Asegurar que el ID esté presente (puede venir del documento de Firestore)
+                                        String carId = carJson.optString("id", "");
+                                        
+                                        // Si el ID viene vacío del JSON, intentar obtenerlo del objeto Car
+                                        if (carId.isEmpty() && car.getId() != null && !car.getId().isEmpty()) {
+                                            carId = car.getId();
+                                        }
+                                        
+                                        // Si aún no hay ID, usar el índice como último recurso
+                                        if (carId.isEmpty()) {
+                                            android.util.Log.w("SearchActivity", "⚠ Coche " + i + " sin ID en JSON, usando índice temporal");
+                                            carId = "temp_" + i;
+                                        }
+                                        
+                                        // Asegurar que el objeto Car tenga el ID
+                                        if (car.getId() == null || car.getId().isEmpty()) {
+                                            car.setId(carId);
+                                        }
+                                        
+                                        carList.add(car);
+                                        android.util.Log.d("SearchActivity", "✓ Coche cargado [" + i + "]: " + car.getFullName() + " (ID: " + car.getId() + ")");
+                                    } catch (Exception e) {
+                                        android.util.Log.e("SearchActivity", "Error parseando coche " + i + ": " + e.getMessage());
+                                        e.printStackTrace();
+                                        continue;
                                     }
-                                    if (car.getId() == null || car.getId().isEmpty()) {
-                                        car.setId(carId);
-                                    }
-                                    
-                                    carList.add(car);
-                                    android.util.Log.d("SearchActivity", "Coche cargado: " + car.getFullName() + " (ID: " + car.getId() + ")");
                                 }
                                 
                                 // Aplicar filtros automáticamente después de cargar
