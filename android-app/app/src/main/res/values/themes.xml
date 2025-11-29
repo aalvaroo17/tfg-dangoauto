@@ -12,13 +12,13 @@
     </style>
 
     <!-- Estilos para CollapsingToolbarLayout -->
-    <style name="ExpandedAppBar" parent="@android:style/TextAppearance.MaterialComponents.Headline4">
+    <style name="ExpandedAppBar" parent="TextAppearance.AppCompat.Headline">
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">28sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="CollapsedAppBar" parent="@android:style/TextAppearance.MaterialComponents.Headline6">
+    <style name="CollapsedAppBar" parent="TextAppearance.AppCompat.Title">
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">20sp</item>
         <item name="android:textStyle">bold</item>
