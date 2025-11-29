@@ -656,16 +656,15 @@
         }
 
         .car-modal-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            min-height: auto;
         }
 
         .car-modal-image-section {
             position: relative;
-            min-height: 600px;
-            max-height: 800px;
+            width: 100%;
+            height: 500px;
             background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(20, 20, 20, 0.8) 100%);
             display: flex;
             align-items: center;
@@ -680,34 +679,39 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            background: linear-gradient(to bottom, transparent 0%, rgba(10, 10, 10, 0.4) 100%);
             z-index: 1;
         }
 
         .car-modal-image {
             width: 100%;
             height: 100%;
-            min-height: 600px;
             object-fit: cover;
             object-position: center;
             position: relative;
             z-index: 2;
             transition: transform 0.5s ease;
-            background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(20, 20, 20, 0.8) 100%);
         }
         
-        /* Ajuste para imágenes que deben mostrarse completas */
         .car-modal-image-section:hover .car-modal-image {
             transform: scale(1.05);
         }
 
         .car-modal-info-section {
-            padding: 3rem;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             overflow-y: auto;
-            max-height: 800px;
+            max-height: none;
+        }
+
+        .car-modal-header-section {
+            padding: 2.5rem 2.5rem 0;
+            background: rgba(20, 20, 20, 0.95);
+        }
+
+        .car-modal-header {
+            margin-bottom: 1.5rem;
         }
 
         .car-modal-header h2 {
@@ -716,10 +720,6 @@
             color: #ffffff;
             margin-bottom: 0.5rem;
             letter-spacing: -1px;
-            background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .car-modal-brand {
@@ -731,42 +731,70 @@
             letter-spacing: 2px;
         }
 
-        .car-modal-price {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .car-modal-price-card {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
             margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .car-modal-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #d4af37;
+            margin-bottom: 0.75rem;
             letter-spacing: -1px;
+        }
+
+        .car-modal-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .car-modal-specs-section {
+            padding: 0 2.5rem 2rem;
+        }
+
+        .car-modal-specs-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
         }
 
         .car-modal-specs {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
             margin-bottom: 2rem;
         }
 
         .car-modal-spec-item {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1.25rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(20, 20, 20, 0.6);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .car-modal-spec-item:hover {
             background: rgba(212, 175, 55, 0.1);
             border-color: rgba(212, 175, 55, 0.3);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.2);
         }
 
         .car-modal-spec-label {
             color: rgba(255, 255, 255, 0.6);
-            font-size: 0.85rem;
-            font-weight: 500;
+            font-size: 0.75rem;
+            font-weight: 600;
             margin-bottom: 0.5rem;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -774,78 +802,94 @@
 
         .car-modal-spec-value {
             color: #ffffff;
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             font-weight: 700;
+        }
+
+        .car-modal-description-section {
+            padding: 0 2.5rem 2rem;
+        }
+
+        .car-modal-description-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
         }
 
         .car-modal-description {
             color: rgba(255, 255, 255, 0.8);
             line-height: 1.8;
             font-size: 1.05rem;
-            margin-bottom: 2rem;
             padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            border-left: 3px solid #d4af37;
+            background: rgba(26, 26, 26, 0.6);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .car-modal-features {
-            margin-bottom: 2rem;
+        .car-modal-features-section {
+            padding: 0 2.5rem 2rem;
         }
 
         .car-modal-features h3 {
             color: #ffffff;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
+            letter-spacing: -0.5px;
         }
 
         .car-modal-features-list {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 0.75rem;
             list-style: none;
         }
 
         .car-modal-features-list li {
             color: rgba(255, 255, 255, 0.8);
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+            padding: 1rem;
+            background: rgba(26, 26, 26, 0.6);
+            border-radius: 12px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.95rem;
+            gap: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .car-modal-features-list li::before {
             content: '✓';
             color: #d4af37;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
         .car-modal-actions {
+            padding: 2rem 2.5rem 2.5rem;
             display: flex;
             gap: 1rem;
+            background: rgba(20, 20, 20, 0.95);
         }
 
         .car-modal-btn {
             flex: 1;
             padding: 1.25rem 2rem;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .car-modal-btn-primary {
             background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
             color: #0a0a0a;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
 
         .car-modal-btn-primary:hover {
@@ -865,32 +909,20 @@
         }
 
         @media (max-width: 968px) {
-            .car-modal-content {
-                grid-template-columns: 1fr;
-                min-height: auto;
-            }
-
             .car-modal-image-section {
-                min-height: 350px;
-                max-height: 400px;
+                height: 350px;
             }
 
-            .car-modal-image {
-                min-height: 350px;
-                max-height: 400px;
-                object-fit: cover;
-            }
-
-            .car-modal-info-section {
-                padding: 2rem;
-                max-height: none;
+            .car-modal-header-section,
+            .car-modal-specs-section,
+            .car-modal-description-section,
+            .car-modal-features-section,
+            .car-modal-actions {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
             }
 
             .car-modal-specs {
-                grid-template-columns: 1fr;
-            }
-
-            .car-modal-features-list {
                 grid-template-columns: 1fr;
             }
         }
@@ -1134,7 +1166,8 @@
         // Estado de la aplicación
         let currentUser = null;
         let isRegisterMode = false;
-        let filteredCars = [...cars];
+        let allCars = [];
+        let filteredCars = [];
 
         // Sistema de usuarios (localStorage)
         function initUsers() {
@@ -1165,7 +1198,7 @@
             document.getElementById('appContainer').style.display = 'block';
             document.getElementById('userName').textContent = currentUser.username;
             loadAppointments();
-            generateCarCatalog();
+            loadCarsFromAPI();
         }
 
         function toggleAuthMode() {
@@ -1350,17 +1383,66 @@
             }
         }
 
+        // Cargar coches desde la API
+        async function loadCarsFromAPI() {
+            try {
+                const apiUrl = window.API_BASE_URL || 'https://tfg-dangoauto.onrender.com';
+                const response = await fetch(`${apiUrl}/api/cars`);
+                const result = await response.json();
+                
+                if (result.success && result.cars) {
+                    allCars = result.cars.map(car => ({
+                        id: car.id,
+                        name: car.name || `${car.brand || ''} ${car.model || ''}`.trim(),
+                        brand: car.brand || '',
+                        model: car.model || '',
+                        price: car.price || 0,
+                        priceFormatted: new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(car.price || 0),
+                        year: car.year || 0,
+                        km: car.km || 0,
+                        fuel: car.fuel || '',
+                        power: car.power || '',
+                        transmission: car.transmission || '',
+                        description: car.description || '',
+                        features: car.features || [],
+                        images: car.images || [],
+                        licensePlate: car.licensePlate || '',
+                        image: (car.images && car.images.length > 0) ? car.images[0] : '/static/Imagenes/placeholder.jpg'
+                    }));
+                    filteredCars = [...allCars];
+                    generateCarCatalog();
+                } else {
+                    // Fallback a coches hardcodeados si la API falla
+                    console.warn('API no disponible, usando coches por defecto');
+                    allCars = [...cars];
+                    filteredCars = [...cars];
+                    generateCarCatalog();
+                }
+            } catch (error) {
+                console.error('Error cargando coches:', error);
+                // Fallback a coches hardcodeados
+                allCars = [...cars];
+                filteredCars = [...cars];
+                generateCarCatalog();
+            }
+        }
+
         // Catálogo de coches
         function generateCarCatalog() {
             const grid = document.getElementById('carsGrid');
             grid.innerHTML = '';
+
+            if (filteredCars.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: rgba(255,255,255,0.7);">No hay coches disponibles</div>';
+                return;
+            }
 
             filteredCars.forEach(car => {
                 const card = document.createElement('div');
                 card.className = 'car-card';
                 card.innerHTML = `
                     <div class="car-image">
-                        <img src="${car.image}" alt="${car.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 200%22%3E%3Crect fill=%22%23e0e0e0%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3E${car.name}%3C/text%3E%3C/svg%3E'">
+                        <img src="${car.image}" alt="${car.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 200%22%3E%3Crect fill=%22%231a1a1a%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3E${car.name}%3C/text%3E%3C/svg%3E'">
                     </div>
                     <div class="car-info">
                         <h3>${car.name}</h3>
@@ -1379,62 +1461,75 @@
             
             modalContent.innerHTML = `
                 <div class="car-modal-content">
+                    <!-- Imagen grande arriba -->
                     <div class="car-modal-image-section">
-                        <img src="${car.image}" alt="${car.name}" class="car-modal-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 200%22%3E%3Crect fill=%22%23e0e0e0%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3E${car.name}%3C/text%3E%3C/svg%3E'">
+                        <img src="${car.image}" alt="${car.name}" class="car-modal-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 200%22%3E%3Crect fill=%22%231a1a1a%22 width=%22300%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3E${car.name}%3C/text%3E%3C/svg%3E'">
                     </div>
+                    
+                    <!-- Información organizada como en Android -->
                     <div class="car-modal-info-section">
-                        <div>
-                            <div class="car-modal-header">
-                                <h2>${car.name}</h2>
-                                <div class="car-modal-brand">${car.brand}</div>
+                        <!-- Header con precio destacado -->
+                        <div class="car-modal-header-section">
+                            <div class="car-modal-price-card">
+                                <div class="car-modal-price">${car.priceFormatted}</div>
+                                <div class="car-modal-name">${car.name}</div>
                             </div>
-                            <div class="car-modal-price">${car.priceFormatted}</div>
-                            
+                        </div>
+
+                        <!-- Especificaciones en grid -->
+                        <div class="car-modal-specs-section">
+                            <div class="car-modal-specs-title">Especificaciones</div>
                             <div class="car-modal-specs">
                                 <div class="car-modal-spec-item">
                                     <div class="car-modal-spec-label">Año</div>
                                     <div class="car-modal-spec-value">${car.year}</div>
                                 </div>
                                 <div class="car-modal-spec-item">
-                                    <div class="car-modal-spec-label">Kilómetros</div>
+                                    <div class="car-modal-spec-label">Kilometros</div>
                                     <div class="car-modal-spec-value">${car.km.toLocaleString()} km</div>
                                 </div>
                                 <div class="car-modal-spec-item">
                                     <div class="car-modal-spec-label">Combustible</div>
                                     <div class="car-modal-spec-value">${car.fuel}</div>
                                 </div>
+                                ${car.power ? `
                                 <div class="car-modal-spec-item">
                                     <div class="car-modal-spec-label">Potencia</div>
                                     <div class="car-modal-spec-value">${car.power}</div>
                                 </div>
+                                ` : ''}
+                                ${car.transmission ? `
                                 <div class="car-modal-spec-item">
-                                    <div class="car-modal-spec-label">Transmisión</div>
+                                    <div class="car-modal-spec-label">Transmision</div>
                                     <div class="car-modal-spec-value">${car.transmission}</div>
-                                </div>
-                                ${car.licensePlate ? `
-                                <div class="car-modal-spec-item">
-                                    <div class="car-modal-spec-label">Matrícula</div>
-                                    <div class="car-modal-spec-value">${car.licensePlate}</div>
                                 </div>
                                 ` : ''}
                             </div>
+                        </div>
 
-                            ${car.description ? `
+                        <!-- Descripción -->
+                        ${car.description ? `
+                        <div class="car-modal-description-section">
+                            <div class="car-modal-description-title">Descripcion</div>
                             <div class="car-modal-description">
                                 ${car.description}
                             </div>
-                            ` : ''}
+                        </div>
+                        ` : ''}
 
-                            ${car.features && car.features.length > 0 ? `
+                        <!-- Características -->
+                        ${car.features && car.features.length > 0 ? `
+                        <div class="car-modal-features-section">
                             <div class="car-modal-features">
-                                <h3>Equipamiento</h3>
+                                <h3>Caracteristicas</h3>
                                 <ul class="car-modal-features-list">
                                     ${car.features.map(feature => `<li>${feature}</li>`).join('')}
                                 </ul>
                             </div>
-                            ` : ''}
                         </div>
+                        ` : ''}
 
+                        <!-- Botones de acción -->
                         <div class="car-modal-actions">
                             <button class="car-modal-btn car-modal-btn-primary" onclick="contactAboutCar('${car.name}')">
                                 Contactar
@@ -1472,13 +1567,15 @@
             const fuel = document.getElementById('fuelFilter').value;
             const maxKm = parseInt(document.getElementById('maxKm').value) || 999999;
 
-            filteredCars = cars.filter(car => {
+            filteredCars = allCars.filter(car => {
                 const matchesSearch = !search || 
                     car.name.toLowerCase().includes(search) ||
-                    car.brand.toLowerCase().includes(search);
+                    (car.brand && car.brand.toLowerCase().includes(search)) ||
+                    (car.model && car.model.toLowerCase().includes(search)) ||
+                    (car.description && car.description.toLowerCase().includes(search));
                 const matchesPrice = car.price >= minPrice && car.price <= maxPrice;
-                const matchesBrand = !brand || car.brand === brand;
-                const matchesFuel = !fuel || car.fuel === fuel;
+                const matchesBrand = !brand || (car.brand && car.brand === brand);
+                const matchesFuel = !fuel || (car.fuel && car.fuel.toLowerCase().includes(fuel.toLowerCase()));
                 const matchesKm = car.km <= maxKm;
 
                 return matchesSearch && matchesPrice && matchesBrand && matchesFuel && matchesKm;

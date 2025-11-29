@@ -63,13 +63,24 @@ try:
 except Exception as e:
     print(f"⚠️ Advertencia: No se pudo conectar a Firebase Storage: {e}")
     print("  Las imágenes se guardarán localmente como fallback")
-    print("  Para habilitar Firebase Storage:")
-    print("  1. Ve a Firebase Console (https://console.firebase.google.com)")
-    print("  2. Selecciona tu proyecto")
-    print("  3. Ve a 'Storage' en el menú lateral")
-    print("  4. Haz clic en 'Empezar' si no está habilitado")
-    print("  5. Acepta las reglas de seguridad por defecto")
-    bucket = None
+            print("  Para habilitar Firebase Storage:")
+            print("  1. Ve a Firebase Console (https://console.firebase.google.com)")
+            print("  2. Selecciona tu proyecto")
+            print("  3. Ve a 'Storage' en el menú lateral")
+            print("  4. Haz clic en 'Empezar' si no está habilitado")
+            print("  5. Acepta las reglas de seguridad por defecto")
+            bucket = None
+
+# Verificar si ImgBB está configurado
+imgbb_api_key = os.environ.get('IMGBB_API_KEY')
+if imgbb_api_key:
+    print("✓ ImgBB configurado (alternativa a Firebase Storage)")
+else:
+    print("⚠️ ImgBB no configurado. Para usarlo:")
+    print("  1. Ve a https://api.imgbb.com/")
+    print("  2. Regístrate (gratis)")
+    print("  3. Obtén tu API key")
+    print("  4. Añade la variable de entorno IMGBB_API_KEY en Render.com")
 
 # Configurar Flask - desactivar carpeta estática por defecto
 app = Flask(__name__, static_folder=None)
@@ -836,8 +847,45 @@ def api_get_cars():
         except:
             return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
 
+def upload_to_imgbb(image_base64):
+    """Sube una imagen a ImgBB y devuelve la URL pública"""
+    try:
+        import requests
+        
+        imgbb_api_key = os.environ.get('IMGBB_API_KEY')
+        if not imgbb_api_key:
+            return None
+        
+        # ImgBB API endpoint
+        url = "https://api.imgbb.com/1/upload"
+        
+        payload = {
+            'key': imgbb_api_key,
+            'image': image_base64
+        }
+        
+        response = requests.post(url, data=payload, timeout=30)
+        
+        if response.status_code == 200:
+            result = response.json()
+            if result.get('success'):
+                image_url = result['data']['url']
+                print(f"✓ Imagen subida a ImgBB: {image_url}")
+                return image_url
+        
+        print(f"⚠️ Error en ImgBB: {response.status_code} - {response.text}")
+        return None
+        
+    except Exception as e:
+        print(f"⚠️ Error subiendo a ImgBB: {e}")
+        return None
+
 def process_base64_images(images_data):
-    """Procesa imágenes en base64 y las guarda en Firebase Storage"""
+    """Procesa imágenes en base64 y las guarda usando el mejor método disponible:
+    1. Firebase Storage (si está disponible)
+    2. ImgBB (si está configurado) - RECOMENDADO
+    3. Almacenamiento local (fallback final)
+    """
     saved_images = []
     
     for idx, image_data in enumerate(images_data):
@@ -853,7 +901,7 @@ def process_base64_images(images_data):
                 # Formato data:image/jpeg;base64,...
                 base64_string = image_data.split(',')[1]
             
-            # Decodificar base64
+            # Decodificar base64 para obtener tamaño
             image_bytes = base64.b64decode(base64_string)
             
             # Generar nombre único para el archivo
@@ -861,48 +909,31 @@ def process_base64_images(images_data):
             unique_id = str(uuid.uuid4())[:8]
             filename = f"cars/car_{timestamp}_{unique_id}_{idx}.jpg"
             
-            # Intentar subir a Firebase Storage primero (si está disponible)
-            storage_success = False
+            image_url = None
+            storage_type = None
+            local_filename = None
+            
+            # Método 1: Intentar Firebase Storage (si está disponible)
             if bucket:
                 try:
                     blob = bucket.blob(filename)
                     blob.upload_from_string(image_bytes, content_type='image/jpeg')
-                    
-                    # Hacer el blob público para que sea accesible
                     blob.make_public()
-                    
-                    # Obtener URL pública
                     image_url = blob.public_url
-                    saved_images.append(image_url)
-                    storage_success = True
-                    
-                    # Guardar referencia en Firestore (colección car_images)
-                    if db:
-                        try:
-                            image_ref = db.collection('car_images').document()
-                            image_ref.set({
-                                'filename': filename,
-                                'url': image_url,
-                                'car_id': None,  # Se actualizará cuando se cree el coche
-                                'created_at': firestore.SERVER_TIMESTAMP,
-                                'size': len(image_bytes),
-                                'storage_type': 'firebase_storage'
-                            })
-                            print(f"✓ Imagen subida a Firebase Storage: {filename}")
-                            print(f"  URL: {image_url}")
-                        except Exception as e:
-                            print(f"⚠️ Error guardando referencia en Firestore: {e}")
-                    
+                    storage_type = 'firebase_storage'
+                    print(f"✓ Imagen subida a Firebase Storage: {filename}")
+                    print(f"  URL: {image_url}")
                 except Exception as e:
                     print(f"⚠️ Error subiendo a Firebase Storage: {e}")
-                    print(f"  Detalles: {str(e)}")
-                    import traceback
-                    traceback.print_exc()
-                    # Continuar con el fallback local
-                    storage_success = False
             
-            # Fallback: almacenamiento local si Firebase Storage no está disponible o falla
-            if not storage_success:
+            # Método 2: Si Firebase Storage falló, intentar ImgBB (RECOMENDADO)
+            if not image_url:
+                image_url = upload_to_imgbb(base64_string)
+                if image_url:
+                    storage_type = 'imgbb'
+            
+            # Método 3: Fallback a almacenamiento local
+            if not image_url:
                 uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'static', 'uploads')
                 os.makedirs(uploads_dir, exist_ok=True)
                 
@@ -917,30 +948,40 @@ def process_base64_images(images_data):
                     base_url = f'https://{base_url}'
                 
                 image_url = f"{base_url}/static/uploads/{local_filename}"
-                saved_images.append(image_url)
+                storage_type = 'local'
                 print(f"✓ Imagen guardada localmente (fallback): {local_filename}")
+            
+            # Guardar URL en la lista
+            if image_url:
+                saved_images.append(image_url)
                 
-                # Guardar referencia en Firestore también (para consistencia)
-                if db:
+                # Guardar referencia en Firestore (si está disponible)
+                if db and storage_type:
                     try:
+                        final_filename = filename if storage_type == 'firebase_storage' else (local_filename if storage_type == 'local' else f"imgbb_{unique_id}")
                         image_ref = db.collection('car_images').document()
                         image_ref.set({
-                            'filename': local_filename,
+                            'filename': final_filename,
                             'url': image_url,
-                            'car_id': None,
+                            'car_id': None,  # Se actualizará cuando se cree el coche
                             'created_at': firestore.SERVER_TIMESTAMP,
                             'size': len(image_bytes),
-                            'storage_type': 'local'
+                            'storage_type': storage_type
                         })
                     except Exception as e:
-                        print(f"⚠️ Error guardando referencia local en Firestore: {e}")
+                        print(f"⚠️ Error guardando referencia en Firestore: {e}")
+            else:
+                print(f"⚠️ No se pudo guardar la imagen {idx} con ningún método")
+                # Si hay error, intentar mantener la URL original si existe
+                if isinstance(image_data, str) and image_data.startswith('http'):
+                    saved_images.append(image_data)
             
         except Exception as e:
             print(f"⚠️ Error procesando imagen {idx}: {e}")
             import traceback
             traceback.print_exc()
             # Si hay error, intentar mantener la URL original si existe
-            if isinstance(image_data, str):
+            if isinstance(image_data, str) and image_data.startswith('http'):
                 saved_images.append(image_data)
     
     return saved_images
