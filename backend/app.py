@@ -63,13 +63,13 @@ try:
 except Exception as e:
     print(f"⚠️ Advertencia: No se pudo conectar a Firebase Storage: {e}")
     print("  Las imágenes se guardarán localmente como fallback")
-            print("  Para habilitar Firebase Storage:")
-            print("  1. Ve a Firebase Console (https://console.firebase.google.com)")
-            print("  2. Selecciona tu proyecto")
-            print("  3. Ve a 'Storage' en el menú lateral")
-            print("  4. Haz clic en 'Empezar' si no está habilitado")
-            print("  5. Acepta las reglas de seguridad por defecto")
-            bucket = None
+    print("  Para habilitar Firebase Storage:")
+    print("  1. Ve a Firebase Console (https://console.firebase.google.com)")
+    print("  2. Selecciona tu proyecto")
+    print("  3. Ve a 'Storage' en el menú lateral")
+    print("  4. Haz clic en 'Empezar' si no está habilitado")
+    print("  5. Acepta las reglas de seguridad por defecto")
+    bucket = None
 
 # Verificar si ImgBB está configurado
 imgbb_api_key = os.environ.get('IMGBB_API_KEY')
