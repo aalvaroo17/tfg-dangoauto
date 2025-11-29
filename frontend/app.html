@@ -602,17 +602,25 @@
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(212, 175, 55, 0.1);
-            max-width: 1200px;
-            width: 100%;
+            max-width: 1400px;
+            width: 95%;
+            max-height: 90vh;
             margin: auto;
             position: relative;
             overflow: hidden;
             transform: scale(0.9);
             transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         .car-modal-overlay.active .car-modal {
             transform: scale(1);
+        }
+
+        .car-modal-content {
+            flex: 1;
+            overflow: hidden;
         }
 
         .car-modal-close {
@@ -646,11 +654,13 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0;
+            min-height: 600px;
         }
 
         .car-modal-image-section {
             position: relative;
-            min-height: 500px;
+            min-height: 600px;
+            max-height: 800px;
             background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(20, 20, 20, 0.8) 100%);
             display: flex;
             align-items: center;
@@ -672,10 +682,18 @@
         .car-modal-image {
             width: 100%;
             height: 100%;
+            min-height: 600px;
             object-fit: cover;
+            object-position: center;
             position: relative;
             z-index: 2;
             transition: transform 0.5s ease;
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(20, 20, 20, 0.8) 100%);
+        }
+        
+        /* Ajuste para imágenes que deben mostrarse completas */
+        .car-modal-image-section:hover .car-modal-image {
+            transform: scale(1.05);
         }
 
         .car-modal-info-section {
@@ -683,6 +701,8 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            overflow-y: auto;
+            max-height: 800px;
         }
 
         .car-modal-header h2 {
@@ -842,14 +862,23 @@
         @media (max-width: 968px) {
             .car-modal-content {
                 grid-template-columns: 1fr;
+                min-height: auto;
             }
 
             .car-modal-image-section {
-                min-height: 300px;
+                min-height: 350px;
+                max-height: 400px;
+            }
+
+            .car-modal-image {
+                min-height: 350px;
+                max-height: 400px;
+                object-fit: cover;
             }
 
             .car-modal-info-section {
                 padding: 2rem;
+                max-height: none;
             }
 
             .car-modal-specs {

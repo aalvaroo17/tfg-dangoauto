@@ -16,11 +16,21 @@ public class CarDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_car_detail);
-
+        
         try {
+            // Verificar que el intent tenga datos
+            if (getIntent() == null) {
+                android.util.Log.e("CarDetailActivity", "Intent es null");
+                finish();
+                return;
+            }
+            
+            setContentView(R.layout.activity_car_detail);
+
             Car car = (Car) getIntent().getSerializableExtra("car");
             if (car == null) {
+                android.util.Log.e("CarDetailActivity", "Coche es null en el intent");
+                android.widget.Toast.makeText(this, "Error: No se pudo cargar la información del coche", android.widget.Toast.LENGTH_SHORT).show();
                 finish();
                 return;
             }
@@ -134,7 +144,11 @@ public class CarDetailActivity extends AppCompatActivity {
 
         } catch (Exception e) {
             android.util.Log.e("CarDetailActivity", "Error cargando detalles", e);
-            finish();
+            android.widget.Toast.makeText(this, "Error al cargar los detalles del coche", android.widget.Toast.LENGTH_LONG).show();
+            // Esperar un poco antes de cerrar para que el usuario vea el mensaje
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                finish();
+            }, 2000);
         }
     }
 }

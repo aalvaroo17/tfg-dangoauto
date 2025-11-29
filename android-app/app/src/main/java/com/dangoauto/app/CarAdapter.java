@@ -54,15 +54,31 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
                 .into(holder.imageViewCar);
         }
         
-        // Click listener con animación
+        // Click listener con animación y manejo de errores
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
-            intent.putExtra("car", car);
-            v.getContext().startActivity(intent);
-            // Animación de transición
-            if (v.getContext() instanceof android.app.Activity) {
-                ((android.app.Activity) v.getContext()).overridePendingTransition(
-                    R.anim.slide_in_right, R.anim.fade_out);
+            try {
+                // Validar que el coche no sea null
+                if (car == null) {
+                    android.widget.Toast.makeText(v.getContext(), "Error: Coche no disponible", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Crear intent de forma segura
+                Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
+                intent.putExtra("car", car);
+                
+                // Verificar que el contexto sea válido
+                if (v.getContext() != null) {
+                    v.getContext().startActivity(intent);
+                    // Animación de transición
+                    if (v.getContext() instanceof android.app.Activity) {
+                        ((android.app.Activity) v.getContext()).overridePendingTransition(
+                            R.anim.slide_in_right, R.anim.fade_out);
+                    }
+                }
+            } catch (Exception e) {
+                android.util.Log.e("CarAdapter", "Error al abrir detalles del coche", e);
+                android.widget.Toast.makeText(v.getContext(), "Error al abrir detalles", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
     }
