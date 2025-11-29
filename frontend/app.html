@@ -498,6 +498,55 @@
             gap: 0.5rem;
         }
 
+        /* Skeleton Loaders */
+        .skeleton {
+            pointer-events: none;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+        }
+
+        @keyframes skeleton-loading {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .skeleton-image {
+            height: 280px;
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                rgba(255, 255, 255, 0.1) 50%, 
+                rgba(255, 255, 255, 0.05) 100%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite;
+        }
+
+        .skeleton-content {
+            padding: 1.75rem;
+        }
+
+        .skeleton-line {
+            height: 16px;
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                rgba(255, 255, 255, 0.1) 50%, 
+                rgba(255, 255, 255, 0.05) 100%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes skeleton-shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
         /* Appointments Section */
         .appointments-section {
             padding: 2rem 0;
@@ -1009,6 +1058,17 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
+        .car-modal-btn-share {
+            background: rgba(37, 211, 102, 0.2);
+            border: 2px solid rgba(37, 211, 102, 0.5);
+            color: #25d366;
+        }
+
+        .car-modal-btn-share:hover {
+            background: rgba(37, 211, 102, 0.3);
+            border-color: #25d366;
+        }
+
         @media (max-width: 968px) {
             .car-modal-image-section {
                 height: 350px;
@@ -1486,6 +1546,7 @@
 
         // Cargar coches desde la API
         async function loadCarsFromAPI() {
+            showSkeletonLoaders();
             try {
                 const apiUrl = window.API_BASE_URL || 'https://tfg-dangoauto.onrender.com';
                 const response = await fetch(`${apiUrl}/api/cars`);
@@ -1525,6 +1586,25 @@
                 allCars = [...cars];
                 filteredCars = [...cars];
                 generateCarCatalog();
+            }
+        }
+
+        // Skeleton loader
+        function showSkeletonLoaders() {
+            const grid = document.getElementById('carsGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'car-card skeleton';
+                skeleton.innerHTML = `
+                    <div class="skeleton-image"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line" style="width: 70%;"></div>
+                        <div class="skeleton-line" style="width: 50%; margin-top: 8px;"></div>
+                        <div class="skeleton-line" style="width: 60%; margin-top: 8px;"></div>
+                    </div>
+                `;
+                grid.appendChild(skeleton);
             }
         }
 
@@ -1659,6 +1739,9 @@
                             <button class="car-modal-btn car-modal-btn-primary" onclick="contactAboutCar('${car.name}')">
                                 Contactar
                             </button>
+                            <button class="car-modal-btn car-modal-btn-share" onclick="shareCar(${JSON.stringify(car).replace(/"/g, '&quot;')})">
+                                Compartir
+                            </button>
                             <button class="car-modal-btn car-modal-btn-secondary" onclick="closeCarModal()">
                                 Cerrar
                             </button>
@@ -1722,6 +1805,65 @@
             if (indicators[currentCarImageIndex]) {
                 indicators[currentCarImageIndex].classList.add('active');
             }
+        }
+
+        function shareCar(car) {
+            try {
+                let shareText = `🚗 ${car.name}\n\n`;
+                shareText += `💰 Precio: ${car.priceFormatted}\n`;
+                shareText += `📅 Año: ${car.year}\n`;
+                shareText += `📊 Kilómetros: ${car.km.toLocaleString()} km\n`;
+                shareText += `⛽ Combustible: ${car.fuel}\n`;
+                
+                if (car.power) {
+                    shareText += `⚡ Potencia: ${car.power}\n`;
+                }
+                if (car.transmission) {
+                    shareText += `🔧 Transmisión: ${car.transmission}\n`;
+                }
+                
+                if (car.description) {
+                    shareText += `\n📝 ${car.description}\n`;
+                }
+                
+                shareText += `\n👉 Ver más en DangoAuto`;
+                
+                // Intentar usar Web Share API si está disponible
+                if (navigator.share) {
+                    navigator.share({
+                        title: `Coche en venta: ${car.name}`,
+                        text: shareText
+                    }).catch(err => {
+                        console.log('Error compartiendo:', err);
+                        fallbackShare(shareText);
+                    });
+                } else {
+                    fallbackShare(shareText);
+                }
+            } catch (error) {
+                console.error('Error compartiendo coche:', error);
+                alert('Error al compartir el coche');
+            }
+        }
+
+        function fallbackShare(text) {
+            // Crear un input temporal para copiar al portapapeles
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('Información del coche copiada al portapapeles. Puedes pegarla en WhatsApp o cualquier otra app.');
+            } catch (err) {
+                // Si falla, mostrar el texto para que el usuario lo copie manualmente
+                prompt('Copia este texto para compartir:', text);
+            }
+            
+            document.body.removeChild(textarea);
         }
 
         function contactAboutCar(carName) {

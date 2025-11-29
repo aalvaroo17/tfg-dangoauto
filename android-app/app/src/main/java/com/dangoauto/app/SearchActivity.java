@@ -1,10 +1,12 @@
 package com.dangoauto.app;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import org.json.JSONArray;
@@ -33,6 +35,8 @@ public class SearchActivity extends AppCompatActivity {
     private TextInputEditText editTextCombustible;
     private MaterialButton btnFiltrar;
     private MaterialButton btnLimpiar;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private View emptyStateView;
     
     private OkHttpClient httpClient;
 
@@ -67,6 +71,17 @@ public class SearchActivity extends AppCompatActivity {
             // Configurar listeners
             setupListeners();
 
+            // Configurar Pull to Refresh
+            if (swipeRefreshLayout != null) {
+                swipeRefreshLayout.setColorSchemeColors(
+                    getResources().getColor(R.color.accent_gold, null),
+                    getResources().getColor(R.color.accent_gold, null)
+                );
+                swipeRefreshLayout.setOnRefreshListener(() -> {
+                    loadCars();
+                });
+            }
+
             // Cargar coches
             loadCars();
             
@@ -79,6 +94,8 @@ public class SearchActivity extends AppCompatActivity {
     
     private void initViews() {
         recyclerView = findViewById(R.id.recyclerViewCars);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        emptyStateView = findViewById(R.id.emptyStateView);
         editTextSearch = findViewById(R.id.editTextSearch);
         editTextMarca = findViewById(R.id.editTextMarca);
         editTextPrecioMin = findViewById(R.id.editTextPrecioMin);
@@ -159,15 +176,22 @@ public class SearchActivity extends AppCompatActivity {
                             
                             android.util.Log.d(TAG, "Coches cargados: " + carList.size());
                             
-                            if (carList.isEmpty()) {
-                                Toast.makeText(this, "No hay coches disponibles", Toast.LENGTH_SHORT).show();
+                            // Detener el refresh
+                            if (swipeRefreshLayout != null) {
+                                swipeRefreshLayout.setRefreshing(false);
                             }
                         } else {
                             Toast.makeText(this, "Error al cargar coches", Toast.LENGTH_SHORT).show();
+                            if (swipeRefreshLayout != null) {
+                                swipeRefreshLayout.setRefreshing(false);
+                            }
                         }
                     } catch (Exception e) {
                         android.util.Log.e(TAG, "Error procesando respuesta", e);
                         Toast.makeText(this, "Error al procesar datos", Toast.LENGTH_SHORT).show();
+                        if (swipeRefreshLayout != null) {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
                     }
                 });
                 
@@ -175,6 +199,9 @@ public class SearchActivity extends AppCompatActivity {
                 android.util.Log.e(TAG, "Error de conexión", e);
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Error de conexión. Verifica tu internet.", Toast.LENGTH_SHORT).show();
+                    if (swipeRefreshLayout != null) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
                 });
             }
         }).start();
@@ -218,6 +245,9 @@ public class SearchActivity extends AppCompatActivity {
         if (carAdapter != null) {
             carAdapter.notifyDataSetChanged();
         }
+        
+        // Mostrar/ocultar empty state
+        updateEmptyState();
         
         android.util.Log.d(TAG, "Mostrando " + filteredCarList.size() + " coches");
     }
@@ -277,6 +307,14 @@ public class SearchActivity extends AppCompatActivity {
         return defaultValue;
     }
 
+    private void updateEmptyState() {
+        if (emptyStateView != null && recyclerView != null) {
+            boolean isEmpty = filteredCarList == null || filteredCarList.isEmpty();
+            emptyStateView.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+            recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        }
+    }
+    
     private void clearFilters() {
         if (editTextSearch != null) editTextSearch.setText("");
         if (editTextMarca != null) editTextMarca.setText("");

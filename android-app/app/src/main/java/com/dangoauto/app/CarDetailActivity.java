@@ -1,6 +1,10 @@
 package com.dangoauto.app;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -46,6 +50,7 @@ public class CarDetailActivity extends AppCompatActivity {
     private OkHttpClient httpClient;
     private CarImagesAdapter imagesAdapter;
     private List<String> carImages;
+    private Car currentCar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +130,77 @@ public class CarDetailActivity extends AppCompatActivity {
             }
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.car_detail_menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menu_share) {
+            shareCar();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    
+    private void shareCar() {
+        if (currentCar == null) {
+            android.widget.Toast.makeText(this, "Cargando información del coche...", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        try {
+            String shareText = buildShareText();
+            
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Coche en venta: " + currentCar.getFullName());
+            
+            // Intent específico para WhatsApp si está disponible
+            Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
+            whatsappIntent.setType("text/plain");
+            whatsappIntent.setPackage("com.whatsapp");
+            whatsappIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+            
+            Intent chooser = Intent.createChooser(shareIntent, "Compartir coche");
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{whatsappIntent});
+            
+            startActivity(chooser);
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "Error compartiendo coche", e);
+            android.widget.Toast.makeText(this, "Error al compartir", android.widget.Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private String buildShareText() {
+        if (currentCar == null) return "";
+        
+        StringBuilder text = new StringBuilder();
+        text.append("🚗 ").append(currentCar.getFullName()).append("\n\n");
+        text.append("💰 Precio: ").append(currentCar.getFormattedPrice()).append("\n");
+        text.append("📅 Año: ").append(currentCar.getYear()).append("\n");
+        text.append("📊 Kilómetros: ").append(String.format("%,d km", currentCar.getKm())).append("\n");
+        text.append("⛽ Combustible: ").append(currentCar.getFuel()).append("\n");
+        
+        if (currentCar.getPower() != null && !currentCar.getPower().isEmpty()) {
+            text.append("⚡ Potencia: ").append(currentCar.getPower()).append("\n");
+        }
+        if (currentCar.getTransmission() != null && !currentCar.getTransmission().isEmpty()) {
+            text.append("🔧 Transmisión: ").append(currentCar.getTransmission()).append("\n");
+        }
+        
+        if (currentCar.getDescription() != null && !currentCar.getDescription().isEmpty()) {
+            text.append("\n📝 ").append(currentCar.getDescription()).append("\n");
+        }
+        
+        text.append("\n👉 Ver más en DangoAuto");
+        
+        return text.toString();
     }
     
     private void loadCarData() {
@@ -244,8 +320,16 @@ public class CarDetailActivity extends AppCompatActivity {
                 // Formatear precio
                 final String formattedPrice = String.format("%,.0f€", price);
                 
+                // Crear objeto Car para compartir
+                final Car car = new Car(foundCar);
+                if (car.getId() == null || car.getId().isEmpty()) {
+                    car.setId(carId);
+                }
+                
                 // Actualizar UI en el hilo principal
                 runOnUiThread(() -> {
+                    // Guardar coche para compartir
+                    currentCar = car;
                     try {
                         android.util.Log.d(TAG, "Actualizando UI con datos del coche");
                         

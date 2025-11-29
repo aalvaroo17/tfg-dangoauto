@@ -3,6 +3,8 @@ package com.dangoauto.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -131,6 +133,10 @@ public class SellActivity extends AppCompatActivity {
                     }
                 });
             }
+            
+            // Configurar validación en tiempo real
+            setupRealTimeValidation();
+            
         } catch (Exception e) {
             android.util.Log.e("SellActivity", "Error crítico en onCreate", e);
             Toast.makeText(this, "Error al cargar la pantalla", Toast.LENGTH_LONG).show();
@@ -337,6 +343,127 @@ public class SellActivity extends AppCompatActivity {
                 recyclerViewFotos.setVisibility(android.view.View.VISIBLE);
             } else {
                 recyclerViewFotos.setVisibility(android.view.View.GONE);
+            }
+        }
+    }
+    
+    private void setupRealTimeValidation() {
+        TextWatcher watcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            
+            @Override
+            public void afterTextChanged(Editable s) {
+                validateFieldInRealTime();
+            }
+        };
+        
+        if (editTextDni != null) editTextDni.addTextChangedListener(watcher);
+        if (editTextTelefono != null) editTextTelefono.addTextChangedListener(watcher);
+        if (editTextEmail != null) editTextEmail.addTextChangedListener(watcher);
+        if (editTextCoche != null) editTextCoche.addTextChangedListener(watcher);
+        if (editTextMatricula != null) editTextMatricula.addTextChangedListener(watcher);
+        if (editTextKilometros != null) editTextKilometros.addTextChangedListener(watcher);
+        if (editTextCombustible != null) editTextCombustible.addTextChangedListener(watcher);
+        if (editTextPrecio != null) editTextPrecio.addTextChangedListener(watcher);
+        if (editTextAño != null) editTextAño.addTextChangedListener(watcher);
+    }
+    
+    private void validateFieldInRealTime() {
+        // Validar DNI
+        TextInputLayout layoutDni = findViewById(R.id.textInputLayoutDni);
+        if (layoutDni != null && editTextDni != null) {
+            String dni = editTextDni.getText().toString().trim();
+            if (!dni.isEmpty() && dni.length() < 9) {
+                layoutDni.setError("El DNI debe tener al menos 9 caracteres");
+            } else {
+                layoutDni.setError(null);
+            }
+        }
+        
+        // Validar Teléfono
+        TextInputLayout layoutTelefono = findViewById(R.id.textInputLayoutTelefono);
+        if (layoutTelefono != null && editTextTelefono != null) {
+            String telefono = editTextTelefono.getText().toString().trim();
+            if (!telefono.isEmpty() && (telefono.length() < 9 || !telefono.matches("\\d+"))) {
+                layoutTelefono.setError("Teléfono inválido (mínimo 9 dígitos)");
+            } else {
+                layoutTelefono.setError(null);
+            }
+        }
+        
+        // Validar Email
+        TextInputLayout layoutEmail = findViewById(R.id.textInputLayoutEmail);
+        if (layoutEmail != null && editTextEmail != null) {
+            String email = editTextEmail.getText().toString().trim();
+            if (!email.isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                layoutEmail.setError("Email inválido");
+            } else {
+                layoutEmail.setError(null);
+            }
+        }
+        
+        // Validar Precio
+        TextInputLayout layoutPrecio = findViewById(R.id.textInputLayoutPrecio);
+        if (layoutPrecio != null && editTextPrecio != null) {
+            String precio = editTextPrecio.getText().toString().trim();
+            if (!precio.isEmpty()) {
+                try {
+                    double precioValue = Double.parseDouble(precio);
+                    if (precioValue <= 0) {
+                        layoutPrecio.setError("El precio debe ser mayor a 0");
+                    } else {
+                        layoutPrecio.setError(null);
+                    }
+                } catch (NumberFormatException e) {
+                    layoutPrecio.setError("Precio inválido");
+                }
+            } else {
+                layoutPrecio.setError(null);
+            }
+        }
+        
+        // Validar Año
+        TextInputLayout layoutAño = findViewById(R.id.textInputLayoutAño);
+        if (layoutAño != null && editTextAño != null) {
+            String año = editTextAño.getText().toString().trim();
+            if (!año.isEmpty()) {
+                try {
+                    int añoValue = Integer.parseInt(año);
+                    int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
+                    if (añoValue < 1900 || añoValue > currentYear + 1) {
+                        layoutAño.setError("Año inválido (1900-" + (currentYear + 1) + ")");
+                    } else {
+                        layoutAño.setError(null);
+                    }
+                } catch (NumberFormatException e) {
+                    layoutAño.setError("Año inválido");
+                }
+            } else {
+                layoutAño.setError(null);
+            }
+        }
+        
+        // Validar Kilómetros
+        TextInputLayout layoutKm = findViewById(R.id.textInputLayoutKilometros);
+        if (layoutKm != null && editTextKilometros != null) {
+            String km = editTextKilometros.getText().toString().trim();
+            if (!km.isEmpty()) {
+                try {
+                    int kmValue = Integer.parseInt(km);
+                    if (kmValue < 0) {
+                        layoutKm.setError("Los kilómetros no pueden ser negativos");
+                    } else {
+                        layoutKm.setError(null);
+                    }
+                } catch (NumberFormatException e) {
+                    layoutKm.setError("Kilómetros inválidos");
+                }
+            } else {
+                layoutKm.setError(null);
             }
         }
     }
