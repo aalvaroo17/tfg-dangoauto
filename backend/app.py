@@ -9,7 +9,7 @@ import base64
 
 # Firebase Admin SDK
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, storage
 
 # Inicializar Firebase Admin (solo una vez)
 if not firebase_admin._apps:
@@ -49,6 +49,27 @@ try:
 except Exception as e:
     print(f"⚠️ Advertencia: No se pudo conectar a Firestore: {e}")
     db = None
+
+# Obtener bucket de Firebase Storage
+bucket = None
+try:
+    # Intentar obtener el bucket por defecto
+    # Nota: Firebase Storage debe estar habilitado en el proyecto Firebase
+    bucket = storage.bucket()
+    # Verificar que el bucket existe (sin hacer operaciones costosas)
+    # Solo verificamos que el bucket se puede obtener
+    print("✓ Firebase Storage inicializado correctamente")
+    print(f"  Bucket: {bucket.name}")
+except Exception as e:
+    print(f"⚠️ Advertencia: No se pudo conectar a Firebase Storage: {e}")
+    print("  Las imágenes se guardarán localmente como fallback")
+    print("  Para habilitar Firebase Storage:")
+    print("  1. Ve a Firebase Console (https://console.firebase.google.com)")
+    print("  2. Selecciona tu proyecto")
+    print("  3. Ve a 'Storage' en el menú lateral")
+    print("  4. Haz clic en 'Empezar' si no está habilitado")
+    print("  5. Acepta las reglas de seguridad por defecto")
+    bucket = None
 
 # Configurar Flask - desactivar carpeta estática por defecto
 app = Flask(__name__, static_folder=None)
@@ -745,10 +766,27 @@ def api_get_cars():
                     base_url = os.environ.get('BACKEND_URL', 'https://tfg-dangoauto.onrender.com')
                     if not base_url.startswith('http'):
                         base_url = f'https://{base_url}'
-                    car_data['images'] = [
-                        img if img.startswith('http') else f"{base_url}{img if img.startswith('/') else '/' + img}"
-                        for img in car_data['images']
-                    ]
+                    processed_images = []
+                    for img in car_data['images']:
+                        if img and isinstance(img, str):
+                            if img.startswith('http'):
+                                processed_images.append(img)
+                            else:
+                                # Asegurar que tenga el / al inicio
+                                img_path = img if img.startswith('/') else '/' + img
+                                processed_images.append(f"{base_url}{img_path}")
+                    car_data['images'] = processed_images
+                
+                # Asegurar que el ID esté presente (redundante pero seguro)
+                if 'id' not in car_data or not car_data['id']:
+                    car_data['id'] = doc.id
+                
+                # Asegurar que images sea una lista válida
+                if 'images' not in car_data:
+                    car_data['images'] = []
+                elif not isinstance(car_data['images'], list):
+                    car_data['images'] = []
+                
                 cars.append(car_data)
             
             # IMPORTANTE: Siempre añadir los coches por defecto (además de los de Firestore)
@@ -799,16 +837,8 @@ def api_get_cars():
             return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
 
 def process_base64_images(images_data):
-    """Procesa imágenes en base64 y las guarda en el servidor"""
+    """Procesa imágenes en base64 y las guarda en Firebase Storage"""
     saved_images = []
-    
-    # Crear directorio para uploads si no existe
-    uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'static', 'uploads')
-    os.makedirs(uploads_dir, exist_ok=True)
-    
-    base_url = os.environ.get('BACKEND_URL', 'https://tfg-dangoauto.onrender.com')
-    if not base_url.startswith('http'):
-        base_url = f'https://{base_url}'
     
     for idx, image_data in enumerate(images_data):
         try:
@@ -828,20 +858,87 @@ def process_base64_images(images_data):
             
             # Generar nombre único para el archivo
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"car_{timestamp}_{idx}.jpg"
-            filepath = os.path.join(uploads_dir, filename)
+            unique_id = str(uuid.uuid4())[:8]
+            filename = f"cars/car_{timestamp}_{unique_id}_{idx}.jpg"
             
-            # Guardar archivo
-            with open(filepath, 'wb') as f:
-                f.write(image_bytes)
+            # Intentar subir a Firebase Storage primero (si está disponible)
+            storage_success = False
+            if bucket:
+                try:
+                    blob = bucket.blob(filename)
+                    blob.upload_from_string(image_bytes, content_type='image/jpeg')
+                    
+                    # Hacer el blob público para que sea accesible
+                    blob.make_public()
+                    
+                    # Obtener URL pública
+                    image_url = blob.public_url
+                    saved_images.append(image_url)
+                    storage_success = True
+                    
+                    # Guardar referencia en Firestore (colección car_images)
+                    if db:
+                        try:
+                            image_ref = db.collection('car_images').document()
+                            image_ref.set({
+                                'filename': filename,
+                                'url': image_url,
+                                'car_id': None,  # Se actualizará cuando se cree el coche
+                                'created_at': firestore.SERVER_TIMESTAMP,
+                                'size': len(image_bytes),
+                                'storage_type': 'firebase_storage'
+                            })
+                            print(f"✓ Imagen subida a Firebase Storage: {filename}")
+                            print(f"  URL: {image_url}")
+                        except Exception as e:
+                            print(f"⚠️ Error guardando referencia en Firestore: {e}")
+                    
+                except Exception as e:
+                    print(f"⚠️ Error subiendo a Firebase Storage: {e}")
+                    print(f"  Detalles: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    # Continuar con el fallback local
+                    storage_success = False
             
-            # Construir URL completa
-            image_url = f"{base_url}/static/uploads/{filename}"
-            saved_images.append(image_url)
-            print(f"✓ Imagen guardada: {filename}")
+            # Fallback: almacenamiento local si Firebase Storage no está disponible o falla
+            if not storage_success:
+                uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'static', 'uploads')
+                os.makedirs(uploads_dir, exist_ok=True)
+                
+                local_filename = f"car_{timestamp}_{unique_id}_{idx}.jpg"
+                filepath = os.path.join(uploads_dir, local_filename)
+                
+                with open(filepath, 'wb') as f:
+                    f.write(image_bytes)
+                
+                base_url = os.environ.get('BACKEND_URL', 'https://tfg-dangoauto.onrender.com')
+                if not base_url.startswith('http'):
+                    base_url = f'https://{base_url}'
+                
+                image_url = f"{base_url}/static/uploads/{local_filename}"
+                saved_images.append(image_url)
+                print(f"✓ Imagen guardada localmente (fallback): {local_filename}")
+                
+                # Guardar referencia en Firestore también (para consistencia)
+                if db:
+                    try:
+                        image_ref = db.collection('car_images').document()
+                        image_ref.set({
+                            'filename': local_filename,
+                            'url': image_url,
+                            'car_id': None,
+                            'created_at': firestore.SERVER_TIMESTAMP,
+                            'size': len(image_bytes),
+                            'storage_type': 'local'
+                        })
+                    except Exception as e:
+                        print(f"⚠️ Error guardando referencia local en Firestore: {e}")
             
         except Exception as e:
             print(f"⚠️ Error procesando imagen {idx}: {e}")
+            import traceback
+            traceback.print_exc()
             # Si hay error, intentar mantener la URL original si existe
             if isinstance(image_data, str):
                 saved_images.append(image_data)
@@ -895,9 +992,36 @@ def api_create_car():
             doc_ref = cars_ref.document()
             doc_ref.set(car_data)
             
+            car_id = doc_ref.id
+            
+            # Actualizar referencias de imágenes en Firestore con el ID del coche
+            if db and processed_images:
+                try:
+                    images_ref = db.collection('car_images')
+                    # Buscar imágenes que no tienen car_id asignado y actualizarlas
+                    # (las imágenes recién subidas tendrán car_id=None)
+                    updated_count = 0
+                    for image_url in processed_images:
+                        try:
+                            # Buscar la imagen por URL (puede haber múltiples, tomamos la primera sin car_id)
+                            query = images_ref.where('url', '==', image_url).where('car_id', '==', None).limit(1)
+                            docs = list(query.stream())
+                            if docs:
+                                docs[0].reference.update({'car_id': car_id})
+                                updated_count += 1
+                                print(f"✓ Referencia de imagen actualizada con car_id: {car_id}")
+                        except Exception as e:
+                            print(f"⚠️ Error actualizando imagen individual: {e}")
+                    if updated_count > 0:
+                        print(f"✓ Total de {updated_count} referencias de imágenes actualizadas")
+                except Exception as e:
+                    print(f"⚠️ Error actualizando referencias de imágenes: {e}")
+                    import traceback
+                    traceback.print_exc()
+            
             # Preparar respuesta sin SERVER_TIMESTAMP (no serializable a JSON)
             response_data = {
-                "id": doc_ref.id,
+                "id": car_id,
                 "name": car_data['name'],
                 "brand": car_data['brand'],
                 "model": car_data['model'],
@@ -918,7 +1042,7 @@ def api_create_car():
                 "created_at": datetime.now().isoformat()  # Usar timestamp actual en lugar de SERVER_TIMESTAMP
             }
             
-            print(f"✓ Coche guardado en Firestore: {car_data['name']} (ID: {doc_ref.id})")
+            print(f"✓ Coche guardado en Firestore: {car_data['name']} (ID: {car_id})")
             
             return jsonify({
                 "success": True,

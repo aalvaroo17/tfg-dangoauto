@@ -48,6 +48,10 @@ public class Car implements Serializable {
     // Constructor desde JSON
     public Car(JSONObject json) {
         try {
+            // Asegurar que siempre se inicialicen las listas
+            this.features = new ArrayList<>();
+            this.images = new ArrayList<>();
+            
             this.id = json.optString("id", "");
             this.name = json.optString("name", "");
             this.brand = json.optString("brand", "");
@@ -61,26 +65,53 @@ public class Car implements Serializable {
             this.description = json.optString("description", "");
             this.licensePlate = json.optString("licensePlate", "");
             
-            this.features = new ArrayList<>();
+            // Log para debugging
+            android.util.Log.d("Car", "Parseando coche - ID: " + this.id + ", Name: " + this.name);
+            
             if (json.has("features")) {
-                org.json.JSONArray featuresArray = json.getJSONArray("features");
-                for (int i = 0; i < featuresArray.length(); i++) {
-                    this.features.add(featuresArray.getString(i));
+                try {
+                    org.json.JSONArray featuresArray = json.getJSONArray("features");
+                    for (int i = 0; i < featuresArray.length(); i++) {
+                        String feature = featuresArray.optString(i, "");
+                        if (!feature.isEmpty()) {
+                            this.features.add(feature);
+                        }
+                    }
+                } catch (Exception e) {
+                    android.util.Log.w("Car", "Error parseando features: " + e.getMessage());
                 }
             }
             
-            this.images = new ArrayList<>();
             if (json.has("images")) {
-                org.json.JSONArray imagesArray = json.getJSONArray("images");
-                for (int i = 0; i < imagesArray.length(); i++) {
-                    this.images.add(imagesArray.getString(i));
+                try {
+                    org.json.JSONArray imagesArray = json.getJSONArray("images");
+                    for (int i = 0; i < imagesArray.length(); i++) {
+                        String image = imagesArray.optString(i, "");
+                        if (!image.isEmpty()) {
+                            this.images.add(image);
+                        }
+                    }
+                    android.util.Log.d("Car", "Imágenes parseadas: " + this.images.size());
+                } catch (Exception e) {
+                    android.util.Log.w("Car", "Error parseando images: " + e.getMessage());
                 }
             } else if (json.has("image")) {
                 // Compatibilidad con formato antiguo (una sola imagen)
-                this.images.add(json.getString("image"));
+                String image = json.optString("image", "");
+                if (!image.isEmpty()) {
+                    this.images.add(image);
+                }
             }
         } catch (Exception e) {
             android.util.Log.e("Car", "Error parseando JSON", e);
+            e.printStackTrace();
+            // Asegurar que las listas estén inicializadas incluso si hay error
+            if (this.features == null) {
+                this.features = new ArrayList<>();
+            }
+            if (this.images == null) {
+                this.images = new ArrayList<>();
+            }
         }
     }
     

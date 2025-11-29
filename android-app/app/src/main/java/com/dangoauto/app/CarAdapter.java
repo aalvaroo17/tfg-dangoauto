@@ -47,11 +47,17 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
         // Imagen
         List<String> images = car.getImages();
         if (images != null && !images.isEmpty()) {
+            String imageUrl = images.get(0);
             Glide.with(holder.itemView.getContext())
-                .load(images.get(0))
+                .load(imageUrl)
                 .placeholder(R.color.background_card)
                 .error(R.color.background_card)
+                .fallback(R.color.background_card)
+                .centerCrop()
                 .into(holder.imageViewCar);
+        } else {
+            // Si no hay imágenes, mostrar placeholder
+            holder.imageViewCar.setImageResource(R.color.background_card);
         }
         
         // Click listener con animación y manejo de errores
@@ -59,17 +65,32 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
             try {
                 // Validar que el coche no sea null
                 if (car == null) {
+                    android.util.Log.e("CarAdapter", "Coche es null en onClick");
                     android.widget.Toast.makeText(v.getContext(), "Error: Coche no disponible", android.widget.Toast.LENGTH_SHORT).show();
                     return;
                 }
                 
-                // Pasar el objeto Car como Serializable (método más seguro)
-                Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
-                intent.putExtra("car", car);
+                String carId = car.getId();
+                android.util.Log.d("CarAdapter", "Abriendo detalles del coche: " + car.getFullName() + " (ID: " + carId + ")");
                 
-                // También pasar el ID como backup
-                if (car.getId() != null) {
-                    intent.putExtra("carId", car.getId());
+                // SIEMPRE pasar el ID primero (método más confiable)
+                Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
+                
+                // Pasar el ID como string (siempre funciona)
+                if (carId != null && !carId.isEmpty()) {
+                    intent.putExtra("carId", carId);
+                    android.util.Log.d("CarAdapter", "ID pasado al intent: " + carId);
+                } else {
+                    android.util.Log.w("CarAdapter", "Advertencia: El coche no tiene ID");
+                }
+                
+                // Intentar pasar el objeto completo como backup (puede fallar en algunos casos)
+                try {
+                    intent.putExtra("car", car);
+                    android.util.Log.d("CarAdapter", "Objeto Car pasado al intent");
+                } catch (Exception serializationException) {
+                    android.util.Log.w("CarAdapter", "No se pudo serializar el objeto Car, usando solo ID: " + serializationException.getMessage());
+                    // Continuar solo con el ID
                 }
                 
                 // Verificar que el contexto sea válido
@@ -80,11 +101,13 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
                         ((android.app.Activity) v.getContext()).overridePendingTransition(
                             R.anim.slide_in_right, R.anim.fade_out);
                     }
+                } else {
+                    android.util.Log.e("CarAdapter", "Context es null");
                 }
             } catch (Exception e) {
-                android.util.Log.e("CarAdapter", "Error al abrir detalles del coche", e);
+                android.util.Log.e("CarAdapter", "Error crítico al abrir detalles del coche", e);
                 e.printStackTrace();
-                android.widget.Toast.makeText(v.getContext(), "Error al abrir detalles: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                android.widget.Toast.makeText(v.getContext(), "Error al abrir detalles. Intenta de nuevo.", android.widget.Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -30,26 +30,36 @@ public class CarDetailActivity extends AppCompatActivity {
             Car car = null;
             
             // Intentar obtener el coche del intent
+            String carId = getIntent().getStringExtra("carId");
+            android.util.Log.d("CarDetailActivity", "ID del coche recibido: " + (carId != null ? carId : "null"));
+            
             try {
                 car = (Car) getIntent().getSerializableExtra("car");
                 if (car != null) {
                     android.util.Log.d("CarDetailActivity", "Coche cargado desde intent: " + car.getName());
+                    // Asegurar que el ID esté presente
+                    if (car.getId() == null || car.getId().isEmpty()) {
+                        if (carId != null && !carId.isEmpty()) {
+                            car.setId(carId);
+                            android.util.Log.d("CarDetailActivity", "ID asignado al coche: " + carId);
+                        }
+                    }
                 }
             } catch (Exception e) {
                 android.util.Log.e("CarDetailActivity", "Error deserializando coche: " + e.getMessage());
                 e.printStackTrace();
+                android.util.Log.e("CarDetailActivity", "Stack trace completo:", e);
             }
             
             // Si no se pudo cargar desde el intent, intentar cargar desde API usando el ID
             if (car == null) {
-                String carId = getIntent().getStringExtra("carId");
                 if (carId != null && !carId.isEmpty()) {
-                    android.util.Log.d("CarDetailActivity", "Intentando cargar coche desde API con ID: " + carId);
+                    android.util.Log.d("CarDetailActivity", "Coche null, intentando cargar desde API con ID: " + carId);
                     loadCarFromApi(carId);
                     return;
                 } else {
                     android.util.Log.e("CarDetailActivity", "Coche es null y no hay ID disponible");
-                    android.widget.Toast.makeText(this, "Error: No se pudo cargar la información del coche", android.widget.Toast.LENGTH_SHORT).show();
+                    android.widget.Toast.makeText(this, "Error: No se pudo cargar la información del coche. Intenta de nuevo.", android.widget.Toast.LENGTH_LONG).show();
                     finish();
                     return;
                 }
@@ -69,9 +79,12 @@ public class CarDetailActivity extends AppCompatActivity {
     }
     
     private void loadCarFromApi(String carId) {
-        // Mostrar indicador de carga
-        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
-        progressBar.setIndeterminate(true);
+        android.util.Log.d("CarDetailActivity", "Iniciando carga desde API para ID: " + carId);
+        
+        // Mostrar un mensaje de carga al usuario
+        runOnUiThread(() -> {
+            android.widget.Toast.makeText(this, "Cargando detalles del coche...", android.widget.Toast.LENGTH_SHORT).show();
+        });
         
         new Thread(() -> {
             try {
@@ -86,43 +99,73 @@ public class CarDetailActivity extends AppCompatActivity {
                     .addHeader("Accept", "application/json")
                     .build();
                 
+                android.util.Log.d("CarDetailActivity", "Realizando petición a API...");
+                
                 try (okhttp3.Response response = client.newCall(request).execute()) {
                     String responseBody = response.body() != null ? response.body().string() : "";
+                    android.util.Log.d("CarDetailActivity", "Respuesta recibida, longitud: " + responseBody.length());
+                    
+                    if (responseBody.isEmpty()) {
+                        throw new Exception("Respuesta vacía del servidor");
+                    }
+                    
                     org.json.JSONObject jsonResponse = new org.json.JSONObject(responseBody);
                     
                     if (jsonResponse.optBoolean("success", false)) {
                         org.json.JSONArray carsArray = jsonResponse.getJSONArray("cars");
+                        android.util.Log.d("CarDetailActivity", "Total de coches recibidos: " + carsArray.length());
                         
+                        Car foundCar = null;
                         for (int i = 0; i < carsArray.length(); i++) {
                             org.json.JSONObject carJson = carsArray.getJSONObject(i);
-                            if (carJson.optString("id", "").equals(carId)) {
-                                Car car = new Car(carJson);
-                                
-                                // Cargar en el hilo principal
-                                runOnUiThread(() -> {
-                                    try {
-                                        loadCarData(car);
-                                    } catch (Exception e) {
-                                        android.util.Log.e("CarDetailActivity", "Error cargando datos del coche", e);
-                                        android.widget.Toast.makeText(this, "Error al cargar los detalles", android.widget.Toast.LENGTH_SHORT).show();
-                                        finish();
-                                    }
-                                });
-                                return;
+                            String jsonId = carJson.optString("id", "");
+                            android.util.Log.d("CarDetailActivity", "Comparando ID: " + jsonId + " con " + carId);
+                            
+                            // Comparar IDs (case-sensitive)
+                            if (jsonId != null && jsonId.equals(carId)) {
+                                android.util.Log.d("CarDetailActivity", "¡Coche encontrado!");
+                                foundCar = new Car(carJson);
+                                // Asegurar que el ID esté asignado
+                                if (foundCar.getId() == null || foundCar.getId().isEmpty()) {
+                                    foundCar.setId(jsonId);
+                                }
+                                break;
                             }
                         }
+                        
+                        if (foundCar != null) {
+                            final Car car = foundCar;
+                            // Cargar en el hilo principal
+                            runOnUiThread(() -> {
+                                try {
+                                    android.util.Log.d("CarDetailActivity", "Cargando datos del coche en UI: " + car.getFullName());
+                                    loadCarData(car);
+                                } catch (Exception e) {
+                                    android.util.Log.e("CarDetailActivity", "Error cargando datos del coche en UI", e);
+                                    e.printStackTrace();
+                                    android.widget.Toast.makeText(this, "Error al mostrar los detalles", android.widget.Toast.LENGTH_LONG).show();
+                                    finish();
+                                }
+                            });
+                            return;
+                        } else {
+                            android.util.Log.w("CarDetailActivity", "Coche no encontrado con ID: " + carId);
+                        }
+                    } else {
+                        android.util.Log.e("CarDetailActivity", "API devolvió success=false");
                     }
                     
                     // Si no se encontró el coche
                     runOnUiThread(() -> {
-                        android.widget.Toast.makeText(this, "Coche no encontrado", android.widget.Toast.LENGTH_SHORT).show();
+                        android.widget.Toast.makeText(this, "Coche no encontrado. Intenta de nuevo.", android.widget.Toast.LENGTH_LONG).show();
                         finish();
                     });
                 }
             } catch (Exception e) {
                 android.util.Log.e("CarDetailActivity", "Error cargando coche desde API", e);
+                e.printStackTrace();
                 runOnUiThread(() -> {
-                    android.widget.Toast.makeText(this, "Error de conexión", android.widget.Toast.LENGTH_SHORT).show();
+                    android.widget.Toast.makeText(this, "Error de conexión. Verifica tu internet.", android.widget.Toast.LENGTH_LONG).show();
                     finish();
                 });
             }
@@ -153,29 +196,39 @@ public class CarDetailActivity extends AppCompatActivity {
             List<String> images = car.getImages();
             if (images != null && !images.isEmpty()) {
                 String imageUrl = images.get(0);
+                android.util.Log.d("CarDetailActivity", "Cargando imagen: " + imageUrl);
+                
                 // Si la imagen es de uploads y puede no existir, usar placeholder mejorado
                 Glide.with(this)
                     .load(imageUrl)
                     .placeholder(R.color.background_card)
-                    .error(android.R.drawable.ic_menu_report_image) // Imagen de error más visible
+                    .error(R.color.background_card) // Usar color de fondo en lugar de icono
                     .fallback(R.color.background_card) // Fallback si la URL es null
                     .centerCrop()
                     .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
                         @Override
                         public boolean onLoadFailed(com.bumptech.glide.load.engine.GlideException e, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
                             android.util.Log.w("CarDetailActivity", "Error cargando imagen: " + imageUrl);
-                            // Si falla, intentar con una imagen por defecto
-                            return false;
+                            if (e != null && e.getMessage() != null) {
+                                android.util.Log.w("CarDetailActivity", "Mensaje de error: " + e.getMessage());
+                            }
+                            // Si la imagen falla, mostrar un placeholder
+                            runOnUiThread(() -> {
+                                imageViewCar.setImageResource(R.color.background_card);
+                            });
+                            return false; // Permitir que Glide muestre el error placeholder
                         }
                         
                         @Override
                         public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                            android.util.Log.d("CarDetailActivity", "Imagen cargada exitosamente");
                             return false;
                         }
                     })
                     .into(imageViewCar);
             } else {
                 // Si no hay imágenes, mostrar placeholder
+                android.util.Log.w("CarDetailActivity", "El coche no tiene imágenes");
                 imageViewCar.setImageResource(R.color.background_card);
             }
         }

@@ -129,7 +129,20 @@ public class SearchActivity extends AppCompatActivity {
                                 for (int i = 0; i < carsArray.length(); i++) {
                                     JSONObject carJson = carsArray.getJSONObject(i);
                                     Car car = new Car(carJson);
+                                    
+                                    // Asegurar que el ID esté presente (puede venir del documento de Firestore)
+                                    String carId = carJson.optString("id", "");
+                                    if (carId.isEmpty() && car.getId() == null) {
+                                        // Si no hay ID, generar uno temporal o usar el índice
+                                        android.util.Log.w("SearchActivity", "Coche sin ID, usando índice temporal");
+                                        carId = "temp_" + i;
+                                    }
+                                    if (car.getId() == null || car.getId().isEmpty()) {
+                                        car.setId(carId);
+                                    }
+                                    
                                     carList.add(car);
+                                    android.util.Log.d("SearchActivity", "Coche cargado: " + car.getFullName() + " (ID: " + car.getId() + ")");
                                 }
                                 
                                 // Aplicar filtros automáticamente después de cargar
