@@ -42,6 +42,8 @@ public class SellActivity extends AppCompatActivity {
     private TextInputEditText editTextCombustible;
     private TextInputEditText editTextPrecio;
     private TextInputEditText editTextAño;
+    private TextInputEditText editTextPotencia;
+    private TextInputEditText editTextTransmision;
     private TextInputEditText editTextDescripcion;
     private TextInputEditText editTextCaracteristicas;
     private Button btnSeleccionarFotos;
@@ -49,6 +51,7 @@ public class SellActivity extends AppCompatActivity {
     private RecyclerView recyclerViewFotos;
     
     private List<Uri> selectedImages;
+    private SelectedPhotosAdapter photosAdapter;
     private ExecutorService executorService;
     private OkHttpClient httpClient;
 
@@ -78,16 +81,27 @@ public class SellActivity extends AppCompatActivity {
             editTextCombustible = findViewById(R.id.editTextCombustible);
             editTextPrecio = findViewById(R.id.editTextPrecio);
             editTextAño = findViewById(R.id.editTextAño);
+            editTextPotencia = findViewById(R.id.editTextPotencia);
+            editTextTransmision = findViewById(R.id.editTextTransmision);
             editTextDescripcion = findViewById(R.id.editTextDescripcion);
             editTextCaracteristicas = findViewById(R.id.editTextCaracteristicas);
             btnSeleccionarFotos = findViewById(R.id.btnSeleccionarFotos);
             btnSubirInfo = findViewById(R.id.btnSubirInfo);
             recyclerViewFotos = findViewById(R.id.recyclerViewFotos);
 
-            // Configurar RecyclerView de fotos (por ahora oculto, se puede implementar después)
+            // Configurar RecyclerView de fotos
             if (recyclerViewFotos != null) {
                 recyclerViewFotos.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-                recyclerViewFotos.setVisibility(android.view.View.GONE);
+                photosAdapter = new SelectedPhotosAdapter(selectedImages, position -> {
+                    if (position >= 0 && position < selectedImages.size()) {
+                        selectedImages.remove(position);
+                        photosAdapter.notifyItemRemoved(position);
+                        photosAdapter.notifyItemRangeChanged(position, selectedImages.size());
+                        updatePhotosVisibility();
+                    }
+                });
+                recyclerViewFotos.setAdapter(photosAdapter);
+                updatePhotosVisibility();
             }
 
             // Configurar listener del botón de seleccionar fotos
@@ -144,7 +158,10 @@ public class SellActivity extends AppCompatActivity {
                 
                 if (!selectedImages.isEmpty()) {
                     Toast.makeText(this, selectedImages.size() + " foto(s) seleccionada(s)", Toast.LENGTH_SHORT).show();
-                    // Aquí se podría mostrar un preview de las imágenes seleccionadas
+                    if (photosAdapter != null) {
+                        photosAdapter.notifyDataSetChanged();
+                    }
+                    updatePhotosVisibility();
                 }
             }
         }
@@ -195,6 +212,8 @@ public class SellActivity extends AppCompatActivity {
                     carJson.put("year", Integer.parseInt(editTextAño.getText().toString().trim()));
                     carJson.put("km", Integer.parseInt(editTextKilometros.getText().toString().trim()));
                     carJson.put("fuel", editTextCombustible.getText().toString().trim());
+                    carJson.put("power", editTextPotencia != null && editTextPotencia.getText() != null ? editTextPotencia.getText().toString().trim() : "");
+                    carJson.put("transmission", editTextTransmision != null && editTextTransmision.getText() != null ? editTextTransmision.getText().toString().trim() : "");
                     carJson.put("licensePlate", editTextMatricula.getText().toString().trim());
                     carJson.put("description", editTextDescripcion.getText().toString().trim());
                     
@@ -301,9 +320,25 @@ public class SellActivity extends AppCompatActivity {
         if (editTextCombustible != null) editTextCombustible.setText("");
         if (editTextPrecio != null) editTextPrecio.setText("");
         if (editTextAño != null) editTextAño.setText("");
+        if (editTextPotencia != null) editTextPotencia.setText("");
+        if (editTextTransmision != null) editTextTransmision.setText("");
         if (editTextDescripcion != null) editTextDescripcion.setText("");
         if (editTextCaracteristicas != null) editTextCaracteristicas.setText("");
         selectedImages.clear();
+        if (photosAdapter != null) {
+            photosAdapter.notifyDataSetChanged();
+        }
+        updatePhotosVisibility();
+    }
+    
+    private void updatePhotosVisibility() {
+        if (recyclerViewFotos != null) {
+            if (selectedImages != null && !selectedImages.isEmpty()) {
+                recyclerViewFotos.setVisibility(android.view.View.VISIBLE);
+            } else {
+                recyclerViewFotos.setVisibility(android.view.View.GONE);
+            }
+        }
     }
     
     /**

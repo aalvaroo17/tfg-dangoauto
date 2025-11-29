@@ -71,16 +71,6 @@ except Exception as e:
     print("  5. Acepta las reglas de seguridad por defecto")
     bucket = None
 
-# Verificar si ImgBB está configurado
-imgbb_api_key = os.environ.get('IMGBB_API_KEY')
-if imgbb_api_key:
-    print("✓ ImgBB configurado (alternativa a Firebase Storage)")
-else:
-    print("⚠️ ImgBB no configurado. Para usarlo:")
-    print("  1. Ve a https://api.imgbb.com/")
-    print("  2. Regístrate (gratis)")
-    print("  3. Obtén tu API key")
-    print("  4. Añade la variable de entorno IMGBB_API_KEY en Render.com")
 
 # Configurar Flask - desactivar carpeta estática por defecto
 app = Flask(__name__, static_folder=None)
@@ -847,44 +837,10 @@ def api_get_cars():
         except:
             return jsonify({"success": False, "message": f"Error interno: {str(e)}"}), 500
 
-def upload_to_imgbb(image_base64):
-    """Sube una imagen a ImgBB y devuelve la URL pública"""
-    try:
-        import requests
-        
-        imgbb_api_key = os.environ.get('IMGBB_API_KEY')
-        if not imgbb_api_key:
-            return None
-        
-        # ImgBB API endpoint
-        url = "https://api.imgbb.com/1/upload"
-        
-        payload = {
-            'key': imgbb_api_key,
-            'image': image_base64
-        }
-        
-        response = requests.post(url, data=payload, timeout=30)
-        
-        if response.status_code == 200:
-            result = response.json()
-            if result.get('success'):
-                image_url = result['data']['url']
-                print(f"✓ Imagen subida a ImgBB: {image_url}")
-                return image_url
-        
-        print(f"⚠️ Error en ImgBB: {response.status_code} - {response.text}")
-        return None
-        
-    except Exception as e:
-        print(f"⚠️ Error subiendo a ImgBB: {e}")
-        return None
 
 def process_base64_images(images_data):
-    """Procesa imágenes en base64 y las guarda usando el mejor método disponible:
-    1. Firebase Storage (si está disponible)
-    2. ImgBB (si está configurado) - RECOMENDADO
-    3. Almacenamiento local (fallback final)
+    """Procesa imágenes en base64 y las guarda usando Firebase Storage.
+    Si Firebase Storage no está disponible, usa almacenamiento local como fallback.
     """
     saved_images = []
     
@@ -913,7 +869,7 @@ def process_base64_images(images_data):
             storage_type = None
             local_filename = None
             
-            # Método 1: Intentar Firebase Storage (si está disponible)
+            # Intentar Firebase Storage (si está disponible)
             if bucket:
                 try:
                     blob = bucket.blob(filename)
@@ -926,13 +882,7 @@ def process_base64_images(images_data):
                 except Exception as e:
                     print(f"⚠️ Error subiendo a Firebase Storage: {e}")
             
-            # Método 2: Si Firebase Storage falló, intentar ImgBB (RECOMENDADO)
-            if not image_url:
-                image_url = upload_to_imgbb(base64_string)
-                if image_url:
-                    storage_type = 'imgbb'
-            
-            # Método 3: Fallback a almacenamiento local
+            # Fallback a almacenamiento local si Firebase Storage no está disponible
             if not image_url:
                 uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'static', 'uploads')
                 os.makedirs(uploads_dir, exist_ok=True)

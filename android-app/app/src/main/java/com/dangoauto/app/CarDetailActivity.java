@@ -7,9 +7,12 @@ import android.widget.TextView;
 import android.widget.ProgressBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.viewpager2.widget.ViewPager2;
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -24,7 +27,8 @@ public class CarDetailActivity extends AppCompatActivity {
     private static final String TAG = "CarDetailActivity";
     private static final String API_URL = "https://tfg-dangoauto.onrender.com/api/cars";
     
-    private ImageView imageViewCar;
+    private ViewPager2 viewPagerImages;
+    private TabLayout tabLayoutIndicators;
     private TextView textViewPrice;
     private TextView textViewCarName;
     private TextView textViewYear;
@@ -40,6 +44,8 @@ public class CarDetailActivity extends AppCompatActivity {
     
     private String carId;
     private OkHttpClient httpClient;
+    private CarImagesAdapter imagesAdapter;
+    private List<String> carImages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +91,8 @@ public class CarDetailActivity extends AppCompatActivity {
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
         collapsingToolbar = findViewById(R.id.collapsingToolbar);
-        imageViewCar = findViewById(R.id.imageViewCar);
+        viewPagerImages = findViewById(R.id.viewPagerImages);
+        tabLayoutIndicators = findViewById(R.id.tabLayoutIndicators);
         textViewPrice = findViewById(R.id.textViewPrice);
         textViewCarName = findViewById(R.id.textViewCarName);
         textViewYear = findViewById(R.id.textViewYear);
@@ -96,6 +103,10 @@ public class CarDetailActivity extends AppCompatActivity {
         textViewDescription = findViewById(R.id.textViewDescription);
         textViewFeatures = findViewById(R.id.textViewFeatures);
         fabContact = findViewById(R.id.fabContact);
+        
+        carImages = new ArrayList<>();
+        imagesAdapter = new CarImagesAdapter(carImages);
+        viewPagerImages.setAdapter(imagesAdapter);
         
         // Configurar FAB
         if (fabContact != null) {
@@ -189,15 +200,21 @@ public class CarDetailActivity extends AppCompatActivity {
                 final String transmission = foundCar.optString("transmission", "");
                 final String description = foundCar.optString("description", "Sin descripción");
                 
-                // Obtener primera imagen
-                String imageUrl = "";
+                // Obtener todas las imágenes
+                final List<String> imagesList = new ArrayList<>();
                 if (foundCar.has("images")) {
                     JSONArray imagesArray = foundCar.getJSONArray("images");
-                    if (imagesArray.length() > 0) {
-                        imageUrl = imagesArray.optString(0, "");
+                    for (int i = 0; i < imagesArray.length(); i++) {
+                        String imgUrl = imagesArray.optString(i, "");
+                        if (!imgUrl.isEmpty()) {
+                            imagesList.add(imgUrl);
+                        }
                     }
                 }
-                final String finalImageUrl = imageUrl;
+                // Si no hay imágenes, añadir una placeholder
+                if (imagesList.isEmpty()) {
+                    imagesList.add("");
+                }
                 
                 // Obtener características
                 final StringBuilder featuresText = new StringBuilder();
@@ -237,14 +254,22 @@ public class CarDetailActivity extends AppCompatActivity {
                             collapsingToolbar.setTitle(fullName);
                         }
                         
-                        // Imagen
-                        if (imageViewCar != null && !finalImageUrl.isEmpty()) {
-                            Glide.with(CarDetailActivity.this)
-                                .load(finalImageUrl)
-                                .placeholder(R.color.background_card)
-                                .error(R.color.background_card)
-                                .centerCrop()
-                                .into(imageViewCar);
+                        // Imágenes en ViewPager
+                        if (viewPagerImages != null && imagesAdapter != null) {
+                            carImages.clear();
+                            carImages.addAll(imagesList);
+                            imagesAdapter.notifyDataSetChanged();
+                            
+                            // Configurar indicadores de página
+                            if (tabLayoutIndicators != null) {
+                                if (imagesList.size() > 1) {
+                                    tabLayoutIndicators.setVisibility(View.VISIBLE);
+                                    new TabLayoutMediator(tabLayoutIndicators, viewPagerImages,
+                                        (tab, position) -> {}).attach();
+                                } else {
+                                    tabLayoutIndicators.setVisibility(View.GONE);
+                                }
+                            }
                         }
                         
                         // Precio y nombre
