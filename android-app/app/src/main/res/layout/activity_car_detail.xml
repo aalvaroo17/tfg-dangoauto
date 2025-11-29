@@ -107,12 +107,12 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Especificaciones en Grid -->
+            <!-- Título de especificaciones -->
             <TextView
                 android:id="@+id/textViewSpecsTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/especificaciones"
+                android:text="Especificaciones"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -120,243 +120,266 @@
                 app:layout_constraintTop_toBottomOf="@+id/cardPrice"
                 app:layout_constraintStart_toStartOf="parent" />
 
-            <androidx.gridlayout.widget.GridLayout
-                android:id="@+id/gridSpecs"
+            <!-- Especificaciones en dos columnas usando LinearLayout -->
+            <LinearLayout
+                android:id="@+id/layoutSpecs"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:rowCount="3"
-                android:alignmentMode="alignMargins"
-                android:columnOrderPreserved="false"
-                android:useDefaultMargins="false"
+                android:orientation="vertical"
                 android:layout_marginBottom="24dp"
                 app:layout_constraintTop_toBottomOf="@+id/textViewSpecsTitle"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-                <!-- Año -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
+                <!-- Primera fila: Año y Kilómetros -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/background_secondary"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/border_light">
+                    android:orientation="horizontal"
+                    android:weightSum="2">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <!-- Año -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                        android:layout_weight="1"
+                        android:layout_margin="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/background_secondary"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="@color/border_light">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Año"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_hint"
-                            android:textStyle="bold"
-                            android:textAllCaps="true"
-                            android:letterSpacing="0.5" />
+                            android:orientation="vertical"
+                            android:padding="16dp">
 
-                        <TextView
-                            android:id="@+id/textViewYear"
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Año"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_hint"
+                                android:textStyle="bold"
+                                android:textAllCaps="true"
+                                android:letterSpacing="0.5" />
+
+                            <TextView
+                                android:id="@+id/textViewYear"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="2022"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginTop="4dp" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Kilómetros -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/background_secondary"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="@color/border_light">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="2022"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:layout_marginTop="4dp" />
+                            android:orientation="vertical"
+                            android:padding="16dp">
 
-                    </LinearLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Kilometros"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_hint"
+                                android:textStyle="bold"
+                                android:textAllCaps="true"
+                                android:letterSpacing="0.5" />
 
-                </com.google.android.material.card.MaterialCardView>
+                            <TextView
+                                android:id="@+id/textViewKm"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="15,000 km"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginTop="4dp" />
 
-                <!-- Kilómetros -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+                <!-- Segunda fila: Combustible y Potencia -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/background_secondary"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/border_light">
+                    android:orientation="horizontal"
+                    android:weightSum="2">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <!-- Combustible -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                        android:layout_weight="1"
+                        android:layout_margin="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/background_secondary"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="@color/border_light">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Kilómetros"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_hint"
-                            android:textStyle="bold"
-                            android:textAllCaps="true"
-                            android:letterSpacing="0.5" />
+                            android:orientation="vertical"
+                            android:padding="16dp">
 
-                        <TextView
-                            android:id="@+id/textViewKm"
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Combustible"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_hint"
+                                android:textStyle="bold"
+                                android:textAllCaps="true"
+                                android:letterSpacing="0.5" />
+
+                            <TextView
+                                android:id="@+id/textViewFuel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Diesel"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginTop="4dp" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Potencia -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/background_secondary"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="@color/border_light">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="15,000 km"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:layout_marginTop="4dp" />
+                            android:orientation="vertical"
+                            android:padding="16dp">
 
-                    </LinearLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Potencia"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_hint"
+                                android:textStyle="bold"
+                                android:textAllCaps="true"
+                                android:letterSpacing="0.5" />
 
-                </com.google.android.material.card.MaterialCardView>
+                            <TextView
+                                android:id="@+id/textViewPower"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="190 CV"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginTop="4dp" />
 
-                <!-- Combustible -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+                <!-- Tercera fila: Transmisión (centrado) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/background_secondary"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/border_light">
+                    android:orientation="horizontal"
+                    android:gravity="center">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                        android:layout_weight="1"
+                        android:layout_margin="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/background_secondary"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="@color/border_light">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Combustible"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_hint"
-                            android:textStyle="bold"
-                            android:textAllCaps="true"
-                            android:letterSpacing="0.5" />
+                            android:orientation="vertical"
+                            android:padding="16dp">
 
-                        <TextView
-                            android:id="@+id/textViewFuel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Diésel"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:layout_marginTop="4dp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Transmision"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_hint"
+                                android:textStyle="bold"
+                                android:textAllCaps="true"
+                                android:letterSpacing="0.5" />
 
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/textViewTransmission"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Automatico"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginTop="4dp" />
 
-                </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
 
-                <!-- Potencia -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/background_secondary"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/border_light">
+                    </com.google.android.material.card.MaterialCardView>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Potencia"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_hint"
-                            android:textStyle="bold"
-                            android:textAllCaps="true"
-                            android:letterSpacing="0.5" />
-
-                        <TextView
-                            android:id="@+id/textViewPower"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="190 CV"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:layout_marginTop="4dp" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Transmisión -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/background_secondary"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/border_light">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Transmisión"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_hint"
-                            android:textStyle="bold"
-                            android:textAllCaps="true"
-                            android:letterSpacing="0.5" />
-
-                        <TextView
-                            android:id="@+id/textViewTransmission"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Automático"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:layout_marginTop="4dp" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-            </androidx.gridlayout.widget.GridLayout>
+            </LinearLayout>
 
             <!-- Descripción -->
             <TextView
                 android:id="@+id/textViewDescriptionTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Descripción"
+                android:text="Descripcion"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:layout_marginBottom="16dp"
-                app:layout_constraintTop_toBottomOf="@+id/gridSpecs"
+                app:layout_constraintTop_toBottomOf="@+id/layoutSpecs"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <com.google.android.material.card.MaterialCardView
@@ -376,7 +399,7 @@
                     android:id="@+id/textViewDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sedán premium con excelente rendimiento y tecnología avanzada."
+                    android:text="Sedan premium con excelente rendimiento y tecnologia avanzada."
                     android:textSize="16sp"
                     android:textColor="@color/text_secondary"
                     android:lineSpacingExtra="6dp"
@@ -389,7 +412,7 @@
                 android:id="@+id/textViewFeaturesTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/caracteristicas"
+                android:text="Caracteristicas"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -411,23 +434,15 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent">
 
-                <LinearLayout
-                    android:id="@+id/linearLayoutFeatures"
+                <TextView
+                    android:id="@+id/textViewFeatures"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <TextView
-                        android:id="@+id/textViewFeatures"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="• GPS\n• Asientos de cuero\n• Climatizador automático"
-                        android:textSize="16sp"
-                        android:textColor="@color/text_secondary"
-                        android:lineSpacingExtra="8dp" />
-
-                </LinearLayout>
+                    android:text="GPS\nAsientos de cuero\nClimatizador automatico"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_secondary"
+                    android:lineSpacingExtra="8dp"
+                    android:padding="20dp" />
 
             </com.google.android.material.card.MaterialCardView>
 
