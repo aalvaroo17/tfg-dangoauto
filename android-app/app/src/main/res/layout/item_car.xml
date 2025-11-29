@@ -18,18 +18,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Imagen del coche con esquinas redondeadas arriba -->
+        <!-- Imagen del coche -->
         <ImageView
             android:id="@+id/imageViewCar"
             android:layout_width="0dp"
-            android:layout_height="220dp"
+            android:layout_height="200dp"
             android:scaleType="centerCrop"
             android:background="@color/background_secondary"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Overlay gradiente para mejor legibilidad -->
+        <!-- Overlay gradiente -->
         <View
             android:id="@+id/gradientOverlay"
             android:layout_width="0dp"
@@ -39,7 +39,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Badge de precio sobre la imagen -->
+        <!-- Badge de precio -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/badgePrice"
             android:layout_width="wrap_content"
@@ -89,114 +89,15 @@
                 android:maxLines="2"
                 android:ellipsize="end" />
 
-            <!-- Especificaciones con iconos -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="12dp"
-                android:gravity="center_vertical">
-
-                <!-- Año -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/spec_badge_background"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📅"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/textViewYear"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="2022"
-                        android:textSize="13sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginStart="4dp" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="8dp"
-                    android:layout_height="0dp" />
-
-                <!-- Kilómetros -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/spec_badge_background"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🛣️"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/textViewKm"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="15,000 km"
-                        android:textSize="13sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginStart="4dp" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="8dp"
-                    android:layout_height="0dp" />
-
-                <!-- Combustible -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/spec_badge_background"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="⛽"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/textViewFuel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Diésel"
-                        android:textSize="13sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginStart="4dp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Texto auxiliar de specs (oculto pero mantenido por compatibilidad) -->
+            <!-- Especificaciones -->
             <TextView
                 android:id="@+id/textViewCarSpecs"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2022 • 15,000 km • Diésel"
-                android:visibility="gone"
+                android:text="2022 | 15,000 km | Diesel"
                 android:textSize="14sp"
-                android:textColor="@color/text_secondary" />
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="8dp" />
 
         </LinearLayout>
 

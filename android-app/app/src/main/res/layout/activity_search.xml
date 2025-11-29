@@ -79,7 +79,7 @@
                     android:id="@+id/textInputLayoutSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="🔍 Buscar marca, modelo..."
+                    android:hint="Buscar marca, modelo..."
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     app:boxBackgroundMode="none"
                     app:hintTextColor="@color/text_hint"
@@ -113,7 +113,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Sección de filtros colapsable -->
+            <!-- Sección de filtros -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -135,7 +135,7 @@
                         android:id="@+id/textViewFiltersTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⚙️ Filtros avanzados"
+                        android:text="Filtros avanzados"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
@@ -213,7 +213,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginEnd="8dp"
-                            android:hint="Precio mín €"
+                            android:hint="Precio min"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             app:hintTextColor="@color/accent_gold"
                             app:boxStrokeColor="@color/accent_gold"
@@ -237,7 +237,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:hint="Precio máx €"
+                            android:hint="Precio max"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             app:hintTextColor="@color/accent_gold"
                             app:boxStrokeColor="@color/accent_gold"
@@ -287,7 +287,7 @@
                             android:layout_width="0dp"
                             android:layout_height="52dp"
                             android:layout_weight="1"
-                            android:text="🔍 Aplicar"
+                            android:text="Aplicar filtros"
                             android:textSize="14sp"
                             android:textStyle="bold"
                             android:textColor="@color/background_dark"
@@ -314,22 +314,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Vehículos disponibles"
+                    android:text="Vehiculos disponibles"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ver todos"
-                    android:textSize="14sp"
-                    android:textColor="@color/accent_gold" />
 
             </LinearLayout>
 

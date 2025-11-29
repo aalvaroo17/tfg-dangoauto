@@ -33,7 +33,7 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
         Car car = carList.get(position);
         
         if (car == null) {
-            android.util.Log.e(TAG, "Car es null en posición " + position);
+            android.util.Log.e(TAG, "Car es null en posicion " + position);
             return;
         }
         
@@ -43,27 +43,14 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
         
         // Precio en badge
         String price = car.getFormattedPrice();
-        holder.textViewCarPrice.setText(price != null ? price : "0€");
+        holder.textViewCarPrice.setText(price != null ? price : "0 EUR");
         
-        // Especificaciones individuales
-        if (holder.textViewYear != null) {
-            holder.textViewYear.setText(String.valueOf(car.getYear()));
-        }
-        if (holder.textViewKm != null) {
-            holder.textViewKm.setText(String.format("%,d km", car.getKm()));
-        }
-        if (holder.textViewFuel != null) {
-            holder.textViewFuel.setText(car.getFuel() != null ? car.getFuel() : "N/A");
-        }
-        
-        // Specs oculto (por compatibilidad)
-        if (holder.textViewCarSpecs != null) {
-            StringBuilder specs = new StringBuilder();
-            specs.append(car.getYear()).append(" • ");
-            specs.append(String.format("%,d", car.getKm())).append(" km • ");
-            specs.append(car.getFuel() != null ? car.getFuel() : "");
-            holder.textViewCarSpecs.setText(specs.toString());
-        }
+        // Especificaciones en una linea
+        StringBuilder specs = new StringBuilder();
+        specs.append(car.getYear()).append(" | ");
+        specs.append(String.format("%,d", car.getKm())).append(" km | ");
+        specs.append(car.getFuel() != null ? car.getFuel() : "N/A");
+        holder.textViewCarSpecs.setText(specs.toString());
         
         // Imagen
         List<String> images = car.getImages();
@@ -85,7 +72,7 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
             android.util.Log.d(TAG, "Click en coche: " + fullName + " (ID: " + carId + ")");
             
             if (carId == null || carId.isEmpty()) {
-                android.util.Log.e(TAG, "El coche no tiene ID válido");
+                android.util.Log.e(TAG, "El coche no tiene ID valido");
                 android.widget.Toast.makeText(v.getContext(), "Error: Coche sin identificador", android.widget.Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -95,7 +82,7 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
                 intent.putExtra("carId", carId);
                 v.getContext().startActivity(intent);
                 
-                // Animación de transición
+                // Animacion de transicion
                 if (v.getContext() instanceof android.app.Activity) {
                     ((android.app.Activity) v.getContext()).overridePendingTransition(
                         R.anim.slide_in_right, R.anim.fade_out);
@@ -117,9 +104,6 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
         TextView textViewCarName;
         TextView textViewCarPrice;
         TextView textViewCarSpecs;
-        TextView textViewYear;
-        TextView textViewKm;
-        TextView textViewFuel;
 
         CarViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -127,9 +111,6 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
             textViewCarName = itemView.findViewById(R.id.textViewCarName);
             textViewCarPrice = itemView.findViewById(R.id.textViewCarPrice);
             textViewCarSpecs = itemView.findViewById(R.id.textViewCarSpecs);
-            textViewYear = itemView.findViewById(R.id.textViewYear);
-            textViewKm = itemView.findViewById(R.id.textViewKm);
-            textViewFuel = itemView.findViewById(R.id.textViewFuel);
         }
     }
 }
