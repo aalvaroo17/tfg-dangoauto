@@ -54,11 +54,16 @@ public class CarAdapter extends RecyclerView.Adapter<CarAdapter.CarViewHolder> {
                 .into(holder.imageViewCar);
         }
         
-        // Click listener
+        // Click listener con animación
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), CarDetailActivity.class);
             intent.putExtra("car", car);
             v.getContext().startActivity(intent);
+            // Animación de transición
+            if (v.getContext() instanceof android.app.Activity) {
+                ((android.app.Activity) v.getContext()).overridePendingTransition(
+                    R.anim.slide_in_right, R.anim.fade_out);
+            }
         });
     }
 

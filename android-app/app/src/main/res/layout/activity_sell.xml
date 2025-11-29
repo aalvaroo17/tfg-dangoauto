@@ -252,7 +252,7 @@
             android:id="@+id/textInputLayoutCaracteristicas"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="@string/caracteristicas"
+            android:hint="@string/caracteristicas_form"
             app:layout_constraintTop_toBottomOf="@+id/textInputLayoutDescripcion"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

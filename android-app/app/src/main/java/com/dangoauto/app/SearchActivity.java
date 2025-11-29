@@ -2,7 +2,7 @@ package com.dangoauto.app;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
+import com.google.android.material.button.MaterialButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -38,8 +38,8 @@ public class SearchActivity extends AppCompatActivity {
     private TextInputEditText editTextPrecioMax;
     private TextInputLayout textInputLayoutCombustible;
     private TextInputEditText editTextCombustible;
-    private Button btnFiltrar;
-    private Button btnLimpiar;
+    private com.google.android.material.button.MaterialButton btnFiltrar;
+    private com.google.android.material.button.MaterialButton btnLimpiar;
     
     private ExecutorService executorService;
     private OkHttpClient httpClient;
